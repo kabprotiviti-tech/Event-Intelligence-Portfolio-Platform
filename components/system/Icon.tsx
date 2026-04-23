@@ -112,6 +112,34 @@ export const PulseIcon = (p: IconProps) => (
   </svg>
 )
 
+export const StrategyIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M2 14V6l6-4 6 4v8" />
+    <path d="M2 14h12M6 14V9h4v5" />
+  </svg>
+)
+
+export const TrendUpIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M2 11l4-4 3 3 5-6" />
+    <path d="M11 4h3v3" />
+  </svg>
+)
+
+export const TrendDownIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M2 5l4 4 3-3 5 6" />
+    <path d="M11 12h3V9" />
+  </svg>
+)
+
+export const TrendFlatIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M2 8h12" />
+    <path d="M11 5l3 3-3 3" />
+  </svg>
+)
+
 export const MenuIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M2 4h12M2 8h12M2 12h12" />

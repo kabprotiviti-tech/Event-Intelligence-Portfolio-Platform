@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  DashboardIcon, GapIcon, ConceptIcon, PortfolioIcon,
+  DashboardIcon, GapIcon, ConceptIcon, PortfolioIcon, StrategyIcon,
 } from '@/components/system/Icon'
 
 const NAV = [
@@ -10,6 +10,7 @@ const NAV = [
   { label: 'Gap Finder', href: '/gaps',      Icon: GapIcon },
   { label: 'Concepts',   href: '/concepts',  Icon: ConceptIcon },
   { label: 'Portfolio',  href: '/portfolio', Icon: PortfolioIcon },
+  { label: 'Strategy',   href: '/strategy',  Icon: StrategyIcon },
 ]
 
 export function Sidebar() {

@@ -9,6 +9,7 @@ const TITLES: Record<string, { title: string; sub: string }> = {
   '/gaps':      { title: 'Gap Finder',                   sub: 'Cross-city calendar analysis' },
   '/concepts':  { title: 'Concept Generator',            sub: 'Gap-sourced event opportunities' },
   '/portfolio': { title: 'Portfolio Optimizer',          sub: 'Scoring, budgeting & prioritization' },
+  '/strategy':  { title: 'Chairman Brief',                sub: 'Health · outlook · scenarios' },
 }
 
 interface Props {
