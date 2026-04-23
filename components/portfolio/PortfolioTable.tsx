@@ -2,6 +2,7 @@
 import type { PortfolioEvent } from '@/types'
 import { CategoryBadge } from '@/components/ui/Badge'
 import { SourceBadge } from '@/components/ui/SourceBadge'
+import { useDrill } from '@/context/DrillContext'
 
 function ScoreBar({ score }: { score: number }) {
   const pct = (score / 10) * 100
@@ -33,6 +34,8 @@ const HEADERS = [
 ] as const
 
 export function PortfolioTable({ events }: { events: PortfolioEvent[] }) {
+  const { open } = useDrill()
+
   if (events.length === 0) {
     return (
       <div className="py-10 text-center border border-dashed border-subtle rounded-md">
@@ -62,7 +65,13 @@ export function PortfolioTable({ events }: { events: PortfolioEvent[] }) {
           {events.map(e => (
             <tr
               key={e.id}
-              className="border-b border-subtle last:border-0 hover:bg-surface-inset transition-colors duration-ui ease-out"
+              onClick={() => open({
+                kind: 'event-detail',
+                eyebrow: 'Event detail',
+                title: e.name,
+                event: e,
+              })}
+              className="border-b border-subtle last:border-0 hover:bg-surface-inset transition-colors duration-ui ease-out cursor-pointer"
             >
               <td className="py-3 pr-4 font-medium text-fg-primary max-w-[240px] truncate">
                 <div className="flex items-center gap-2">

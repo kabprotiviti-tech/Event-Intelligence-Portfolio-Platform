@@ -1,54 +1,25 @@
 'use client'
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import type {
-  Category, City, EnrichedGapSlot, EventDecision, CreateDecision, PortfolioEvent,
+  Category, City, EnrichedGapSlot, EventDecision, CreateDecision,
+  PortfolioEvent, FutureOpportunity, ScenarioResult, CompetitiveGap,
 } from '@/types'
 
 /**
- * Every click-to-drill action on the dashboard resolves into one of these payloads.
- * A single slide-in panel reads the payload and renders the appropriate view.
+ * Every click-to-drill action in the app resolves into one of these payloads.
+ * Rendered by a single DrillPanel mounted at the (app) layout.
  */
 export type DrillPayload =
-  | {
-      kind: 'events'
-      title: string                         // "All events in scope" / "Top performers"
-      eyebrow: string                       // short context label
-      events: PortfolioEvent[]
-      sortHint?: string                     // "sorted by score" / "sorted by date"
-    }
-  | {
-      kind: 'gaps'
-      title: string
-      eyebrow: string
-      gaps: EnrichedGapSlot[]
-      compare: City                         // the comparison city for cell-drill handoff
-    }
-  | {
-      kind: 'cell'
-      title: string
-      eyebrow: string
-      month: number
-      category: Category
-      compare: City
-    }
-  | {
-      kind: 'event-decision'
-      title: string
-      eyebrow: string
-      decision: EventDecision
-    }
-  | {
-      kind: 'create-decision'
-      title: string
-      eyebrow: string
-      decision: CreateDecision
-    }
-  | {
-      kind: 'concepts'
-      title: string
-      eyebrow: string
-      concepts: CreateDecision[]
-    }
+  | { kind: 'events';             title: string; eyebrow: string; events: PortfolioEvent[]; sortHint?: string }
+  | { kind: 'event-detail';       title: string; eyebrow: string; event: PortfolioEvent }
+  | { kind: 'gaps';               title: string; eyebrow: string; gaps: EnrichedGapSlot[]; compare: City }
+  | { kind: 'cell';               title: string; eyebrow: string; month: number; category: Category; compare: City }
+  | { kind: 'event-decision';     title: string; eyebrow: string; decision: EventDecision }
+  | { kind: 'create-decision';    title: string; eyebrow: string; decision: CreateDecision }
+  | { kind: 'concepts';           title: string; eyebrow: string; concepts: CreateDecision[] }
+  | { kind: 'future-opportunity'; title: string; eyebrow: string; opportunity: FutureOpportunity }
+  | { kind: 'scenario';           title: string; eyebrow: string; scenario: ScenarioResult }
+  | { kind: 'competitive-gap';    title: string; eyebrow: string; gap: CompetitiveGap }
 
 interface DrillState {
   payload: DrillPayload | null
@@ -61,7 +32,6 @@ const DrillCtx = createContext<DrillState | null>(null)
 export function DrillProvider({ children }: { children: ReactNode }) {
   const [payload, setPayload] = useState<DrillPayload | null>(null)
 
-  // Escape closes
   useEffect(() => {
     if (!payload) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPayload(null) }
@@ -69,7 +39,6 @@ export function DrillProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('keydown', onKey)
   }, [payload])
 
-  // Lock body scroll while panel is open
   useEffect(() => {
     if (!payload) return
     const prev = document.body.style.overflow

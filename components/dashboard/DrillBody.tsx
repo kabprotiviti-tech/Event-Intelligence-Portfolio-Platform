@@ -1,7 +1,7 @@
 'use client'
 import type {
   PortfolioEvent, EnrichedGapSlot, EventDecision, CreateDecision,
-  GapSeverity, City, Category,
+  GapSeverity, City, Category, FutureOpportunity, ScenarioResult, CompetitiveGap,
 } from '@/types'
 import { useDrill, type DrillPayload } from '@/context/DrillContext'
 import { useGapCell } from '@/lib/hooks'
@@ -27,12 +27,16 @@ const SEVERITY_STYLE: Record<GapSeverity, string> = {
  */
 export function DrillBody({ payload }: { payload: DrillPayload }) {
   switch (payload.kind) {
-    case 'events':          return <EventsList events={payload.events} sortHint={payload.sortHint} />
-    case 'gaps':            return <GapsList gaps={payload.gaps} compare={payload.compare} />
-    case 'cell':            return <CellView month={payload.month} category={payload.category} compare={payload.compare} />
-    case 'event-decision':  return <EventDecisionDetail decision={payload.decision} />
-    case 'create-decision': return <CreateDecisionDetail decision={payload.decision} />
-    case 'concepts':        return <ConceptsList decisions={payload.concepts} />
+    case 'events':             return <EventsList events={payload.events} sortHint={payload.sortHint} />
+    case 'event-detail':       return <EventDetail event={payload.event} />
+    case 'gaps':               return <GapsList gaps={payload.gaps} compare={payload.compare} />
+    case 'cell':               return <CellView month={payload.month} category={payload.category} compare={payload.compare} />
+    case 'event-decision':     return <EventDecisionDetail decision={payload.decision} />
+    case 'create-decision':    return <CreateDecisionDetail decision={payload.decision} />
+    case 'concepts':           return <ConceptsList decisions={payload.concepts} />
+    case 'future-opportunity': return <OpportunityDetail opportunity={payload.opportunity} />
+    case 'scenario':           return <ScenarioDetail scenario={payload.scenario} />
+    case 'competitive-gap':    return <CompetitiveGapDetail gap={payload.gap} />
   }
 }
 
@@ -57,38 +61,141 @@ function EventsList({ events, sortHint }: { events: PortfolioEvent[]; sortHint?:
 }
 
 function EventRow({ event }: { event: PortfolioEvent }) {
+  const { open } = useDrill()
   const d = new Date(event.start_date)
   return (
-    <li className="rounded-sm border border-subtle px-3 py-2.5 space-y-1.5">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-body-sm font-medium text-fg-primary leading-snug truncate">{event.name}</p>
-        <span className="text-meta text-fg-tertiary tnum shrink-0" data-tabular>
-          {d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-        </span>
-      </div>
-      <div className="flex items-center flex-wrap gap-2 text-meta text-fg-tertiary">
-        <CategoryBadge category={event.category} />
-        <SourceBadge
-          source_type={event.source_type}
-          verification_level={event.verification_level}
-          source_label={event.source_label}
-          compact
-        />
-        <span>{event.city}</span>
-        <span aria-hidden>·</span>
-        <span className="tnum" data-tabular>{event.estimated_attendance.toLocaleString()} guests</span>
-      </div>
-      <div className="flex items-center justify-between text-meta pt-1">
-        <span className="text-fg-tertiary">
-          Score <span className="font-semibold text-fg-primary tnum" data-tabular>{event.portfolio_score.toFixed(1)}</span>
-        </span>
-        <span className="text-fg-tertiary">
-          {event.budget_allocated
-            ? <>Budget <span className="font-semibold text-fg-primary tnum" data-tabular>AED {(event.budget_allocated / 1_000_000).toFixed(1)}M</span></>
-            : ''}
-        </span>
-      </div>
+    <li>
+      <button
+        type="button"
+        onClick={() => open({
+          kind: 'event-detail',
+          eyebrow: 'Event detail',
+          title: event.name,
+          event,
+        })}
+        className="w-full text-left rounded-sm border border-subtle px-3 py-2.5 space-y-1.5 hover:border-strong transition-colors duration-ui ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-body-sm font-medium text-fg-primary leading-snug truncate">{event.name}</p>
+          <span className="text-meta text-fg-tertiary tnum shrink-0" data-tabular>
+            {d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+          </span>
+        </div>
+        <div className="flex items-center flex-wrap gap-2 text-meta text-fg-tertiary">
+          <CategoryBadge category={event.category} />
+          <SourceBadge
+            source_type={event.source_type}
+            verification_level={event.verification_level}
+            source_label={event.source_label}
+            compact
+          />
+          <span>{event.city}</span>
+          <span aria-hidden>·</span>
+          <span className="tnum" data-tabular>{event.estimated_attendance.toLocaleString()} guests</span>
+        </div>
+        <div className="flex items-center justify-between text-meta pt-1">
+          <span className="text-fg-tertiary">
+            Score <span className="font-semibold text-fg-primary tnum" data-tabular>{event.portfolio_score.toFixed(1)}</span>
+          </span>
+          <span className="text-fg-tertiary">
+            {event.budget_allocated
+              ? <>Budget <span className="font-semibold text-fg-primary tnum" data-tabular>AED {(event.budget_allocated / 1_000_000).toFixed(1)}M</span></>
+              : ''}
+          </span>
+        </div>
+      </button>
     </li>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Single event detail — full scoring breakdown + source
+   ═══════════════════════════════════════════════════════════════════ */
+
+function EventDetail({ event }: { event: PortfolioEvent }) {
+  const d = new Date(event.start_date)
+  const endDate = event.end_date ? new Date(event.end_date) : null
+  const dateRange = endDate
+    ? `${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`
+    : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <CategoryBadge category={event.category} />
+          <span className="text-meta text-fg-tertiary">{event.event_format}</span>
+          <span aria-hidden className="text-fg-tertiary">·</span>
+          <SourceBadge
+            source_type={event.source_type}
+            verification_level={event.verification_level}
+            source_label={event.source_label}
+          />
+        </div>
+        <dl className="grid grid-cols-2 gap-3 text-meta">
+          <div>
+            <dt className="text-fg-tertiary">Date</dt>
+            <dd className="font-medium text-fg-primary mt-0.5 tnum" data-tabular>{dateRange}</dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Venue</dt>
+            <dd className="font-medium text-fg-primary mt-0.5">{event.venue}</dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Attendance</dt>
+            <dd className="font-medium text-fg-primary mt-0.5 tnum" data-tabular>
+              {event.estimated_attendance.toLocaleString()}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Tourism origin</dt>
+            <dd className="font-medium text-fg-primary mt-0.5">{event.tourism_origin}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Score breakdown</p>
+        <dl className="space-y-2 text-meta">
+          <Factor term="Portfolio score" value={event.portfolio_score} />
+          <Factor term="ROI"              value={event.roi_score} />
+          <Factor term="Strategic fit"    value={event.strategic_fit_score} />
+          <Factor term="Seasonality"      value={event.seasonality_score} />
+          <Factor term="Tourism impact"   value={event.tourism_impact_score} />
+          <Factor term="Private sector"   value={event.private_sector_score} />
+          <Factor term="Impact weight"    value={event.impact_weight} max={5} />
+        </dl>
+      </div>
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Budget</p>
+        <dl className="grid grid-cols-2 gap-3 text-meta">
+          <div>
+            <dt className="text-fg-tertiary">Min required</dt>
+            <dd className="font-semibold text-fg-primary tnum mt-0.5" data-tabular>
+              AED {(event.min_budget_required / 1_000_000).toFixed(1)}M
+            </dd>
+          </div>
+          <div>
+            <dt className="text-fg-tertiary">Currently allocated</dt>
+            <dd className="font-semibold text-fg-primary tnum mt-0.5" data-tabular>
+              {event.budget_allocated
+                ? `AED ${(event.budget_allocated / 1_000_000).toFixed(1)}M`
+                : '—'}
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Ticket price range</p>
+        <p className="text-body-sm font-medium text-fg-primary tnum" data-tabular>
+          AED {event.ticket_price_range.min.toLocaleString()}
+          {' – '}
+          AED {event.ticket_price_range.max.toLocaleString()}
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -404,6 +511,168 @@ function CreateDecisionDetail({ decision }: { decision: CreateDecision }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Future Opportunity detail (strategy page)
+   ═══════════════════════════════════════════════════════════════════ */
+
+function OpportunityDetail({ opportunity }: { opportunity: FutureOpportunity }) {
+  const investMin = (opportunity.investment_range.min / 1_000_000).toFixed(0)
+  const investMax = (opportunity.investment_range.max / 1_000_000).toFixed(0)
+  return (
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-h3 font-semibold text-fg-primary leading-snug">{opportunity.title}</p>
+        <ConfidencePill confidence={opportunity.confidence} />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <CategoryBadge category={opportunity.category} />
+        <span className="inline-flex items-center h-5 px-2 rounded-sm border border-subtle text-meta text-fg-tertiary">
+          {opportunity.horizon}
+        </span>
+      </div>
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Reasoning</p>
+        <p className="text-body-sm text-fg-secondary leading-relaxed">{opportunity.reasoning}</p>
+      </div>
+      {opportunity.evidence.length > 0 && (
+        <div>
+          <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Evidence</p>
+          <ul className="space-y-1">
+            {opportunity.evidence.map((ev, i) => (
+              <li key={i} className="text-meta text-fg-secondary leading-snug">— {ev}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="rounded-sm border border-subtle px-3 py-2">
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-1">Investment range</p>
+        <p className="text-body-sm font-semibold text-fg-primary tnum" data-tabular>
+          AED {investMin}M – {investMax}M
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Scenario detail (strategy page)
+   ═══════════════════════════════════════════════════════════════════ */
+
+function ScenarioDetail({ scenario }: { scenario: ScenarioResult }) {
+  const p = scenario.projections
+  const drill = useDrill()
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary">{scenario.config.risk_level}</p>
+        <p className="text-h3 font-semibold text-fg-primary mt-1">{scenario.config.name}</p>
+        <p className="text-meta text-fg-tertiary mt-1 tnum" data-tabular>
+          AED {(scenario.config.total_budget / 1_000_000).toFixed(0)}M budget
+        </p>
+      </div>
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Projections</p>
+        <dl className="grid grid-cols-2 gap-3 text-meta">
+          <ProjRow label="Events"          value={p.events_count.toString()} />
+          <ProjRow label="Avg score"       value={`${p.avg_portfolio_score.toFixed(1)} / 10`} />
+          <ProjRow label="Total ROI"       value={p.total_roi_score.toFixed(0)} />
+          <ProjRow label="Total attendance" value={p.total_attendance.toLocaleString()} />
+          <ProjRow label="Gaps filled"     value={p.gaps_filled.toString()} />
+          <ProjRow label="Budget used"     value={`${p.budget_utilization_pct}%`} />
+        </dl>
+      </div>
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Category distribution</p>
+        <dl className="space-y-2 text-meta">
+          <ProjRow label="Family"        value={p.category_distribution.Family.toString()} />
+          <ProjRow label="Entertainment" value={p.category_distribution.Entertainment.toString()} />
+          <ProjRow label="Sports"        value={p.category_distribution.Sports.toString()} />
+        </dl>
+      </div>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => drill.open({
+            kind: 'events',
+            eyebrow: `${scenario.config.name} · selected portfolio`,
+            title: `${scenario.portfolio.length} events`,
+            events: scenario.portfolio,
+            sortHint: 'Ranked by portfolio score',
+          })}
+          className="inline-flex items-center h-8 px-3 rounded-sm border border-subtle hover:border-strong text-meta font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-ui ease-out"
+        >
+          See the {scenario.portfolio.length} selected events →
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ProjRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between">
+      <dt className="text-fg-tertiary">{label}</dt>
+      <dd className="font-semibold text-fg-primary tnum" data-tabular>{value}</dd>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Competitive gap detail (strategy page)
+   ═══════════════════════════════════════════════════════════════════ */
+
+function CompetitiveGapDetail({ gap }: { gap: CompetitiveGap }) {
+  const drill = useDrill()
+  return (
+    <div className="space-y-5">
+      <div className="rounded-sm border border-negative/30 bg-surface-inset px-4 py-3">
+        <p className="text-body-sm text-fg-primary leading-snug">
+          <span className="font-semibold">{gap.city}</span> leads Abu Dhabi by{' '}
+          <span className="font-semibold text-negative tnum" data-tabular>+{gap.their_lead}</span>{' '}
+          {gap.category.toLowerCase()} event{gap.their_lead === 1 ? '' : 's'} in {MONTHS[gap.month]}.
+        </p>
+      </div>
+
+      <dl className="grid grid-cols-2 gap-3 text-meta">
+        <div>
+          <dt className="text-fg-tertiary">Month</dt>
+          <dd className="font-semibold text-fg-primary mt-0.5">{MONTHS[gap.month]}</dd>
+        </div>
+        <div>
+          <dt className="text-fg-tertiary">Category</dt>
+          <dd className="font-semibold text-fg-primary mt-0.5">{gap.category}</dd>
+        </div>
+        <div>
+          <dt className="text-fg-tertiary">Competitor city</dt>
+          <dd className="font-semibold text-fg-primary mt-0.5">{gap.city}</dd>
+        </div>
+        <div>
+          <dt className="text-fg-tertiary">Lead size</dt>
+          <dd className="font-semibold text-negative mt-0.5 tnum" data-tabular>+{gap.their_lead} events</dd>
+        </div>
+      </dl>
+
+      <button
+        type="button"
+        onClick={() => drill.open({
+          kind: 'cell',
+          eyebrow: 'Calendar slot',
+          title: `${MONTHS[gap.month]} · ${gap.category}`,
+          month: gap.month,
+          category: gap.category,
+          compare: gap.city as City,
+        })}
+        className="inline-flex items-center h-8 px-3 rounded-sm border border-subtle hover:border-strong text-meta font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-ui ease-out"
+      >
+        See the actual events in this slot →
+      </button>
     </div>
   )
 }

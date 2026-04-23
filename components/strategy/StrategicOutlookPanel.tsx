@@ -1,4 +1,6 @@
+'use client'
 import type { StrategicOutlook, YearlyOutlook, CompetitivePosition } from '@/types'
+import { useDrill } from '@/context/DrillContext'
 
 const POSITION_TONE: Record<CompetitivePosition, string> = {
   leading:  'text-positive',
@@ -12,7 +14,11 @@ const POSITION_LABEL: Record<CompetitivePosition, string> = {
   lagging:  'Lagging',
 }
 
+const MONTH_SHORT = ['', 'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
 export function StrategicOutlookPanel({ outlook }: { outlook: StrategicOutlook }) {
+  const { open } = useDrill()
+
   return (
     <section
       aria-label="Strategic outlook"
@@ -26,12 +32,10 @@ export function StrategicOutlookPanel({ outlook }: { outlook: StrategicOutlook }
         <span className="text-eyebrow uppercase text-fg-tertiary">Long-term</span>
       </header>
 
-      {/* Year-by-year */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
         {outlook.yearly.map(y => <YearCard key={y.year} year={y} />)}
       </div>
 
-      {/* Underdeveloped categories + Competitive gaps */}
       <div className="grid lg:grid-cols-2 gap-6 pt-4 border-t border-subtle">
         <div>
           <p className="text-eyebrow uppercase text-fg-tertiary mb-3">Underdeveloped categories</p>
@@ -58,27 +62,35 @@ export function StrategicOutlookPanel({ outlook }: { outlook: StrategicOutlook }
 
         <div>
           <p className="text-eyebrow uppercase text-fg-tertiary mb-3">
-            Where we're losing (top 5)
+            Where we're losing (top 5 · click to drill)
           </p>
           {outlook.competitive_gaps.length === 0 ? (
             <p className="text-meta text-fg-tertiary">No significant competitive deficits.</p>
           ) : (
             <ul className="space-y-1.5">
-              {outlook.competitive_gaps.map((g, i) => (
-                <li
-                  key={`${g.month}-${g.category}`}
-                  className="flex items-baseline justify-between rounded-sm border border-subtle px-3 py-2 text-meta"
-                >
-                  <span className="text-fg-secondary">
-                    <span className="font-medium text-fg-primary">{g.city}</span>
-                    <span className="text-fg-tertiary mx-2">·</span>
-                    {g.category}
-                    <span className="text-fg-tertiary mx-2">·</span>
-                    {MONTH_SHORT[g.month]}
-                  </span>
-                  <span className="text-negative font-mono tnum" data-tabular>
-                    +{g.their_lead}
-                  </span>
+              {outlook.competitive_gaps.map(g => (
+                <li key={`${g.month}-${g.category}`}>
+                  <button
+                    type="button"
+                    onClick={() => open({
+                      kind: 'competitive-gap',
+                      eyebrow: 'Competitive deficit',
+                      title: `${MONTH_SHORT[g.month]} · ${g.category} · vs ${g.city}`,
+                      gap: g,
+                    })}
+                    className="w-full flex items-baseline justify-between rounded-sm border border-subtle hover:border-strong px-3 py-2 text-meta transition-colors duration-ui ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <span className="text-fg-secondary">
+                      <span className="font-medium text-fg-primary">{g.city}</span>
+                      <span className="text-fg-tertiary mx-2">·</span>
+                      {g.category}
+                      <span className="text-fg-tertiary mx-2">·</span>
+                      {MONTH_SHORT[g.month]}
+                    </span>
+                    <span className="text-negative font-mono tnum" data-tabular>
+                      +{g.their_lead}
+                    </span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -86,7 +98,6 @@ export function StrategicOutlookPanel({ outlook }: { outlook: StrategicOutlook }
         </div>
       </div>
 
-      {/* Long-term recommendations */}
       <div className="pt-4 border-t border-subtle">
         <p className="text-eyebrow uppercase text-fg-tertiary mb-3">Long-term recommendations</p>
         <ol className="space-y-2">
@@ -104,8 +115,6 @@ export function StrategicOutlookPanel({ outlook }: { outlook: StrategicOutlook }
     </section>
   )
 }
-
-const MONTH_SHORT = ['', 'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 function YearCard({ year }: { year: YearlyOutlook }) {
   return (

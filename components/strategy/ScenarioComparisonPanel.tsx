@@ -1,5 +1,7 @@
+'use client'
 import type { ScenarioComparison, ScenarioResult, Category } from '@/types'
 import { EmptyState } from '@/components/system/states'
+import { useDrill } from '@/context/DrillContext'
 
 const CATS: Category[] = ['Family', 'Entertainment', 'Sports']
 
@@ -10,13 +12,11 @@ export function ScenarioComparisonPanel({ data }: { data: ScenarioComparison }) 
 
   return (
     <div className="space-y-4">
-      {/* Recommendation — single line, executive-friendly */}
       <div className="rounded-md border border-accent/30 bg-surface-card px-5 py-4">
         <p className="text-eyebrow uppercase text-fg-tertiary mb-1">Leadership recommendation</p>
         <p className="text-body-sm text-fg-primary leading-snug">{data.recommendation}</p>
       </div>
 
-      {/* Scenario cards */}
       <div className="grid md:grid-cols-3 gap-4">
         {data.scenarios.map(s => (
           <ScenarioCard
@@ -41,12 +41,22 @@ function ScenarioCard({
   scenario: ScenarioResult
   isLeader: { roi: boolean; attendance: boolean; balance: boolean; seasonality: boolean }
 }) {
+  const { open } = useDrill()
   const p = scenario.projections
   const dist = p.category_distribution
   const total = dist.Family + dist.Entertainment + dist.Sports || 1
 
   return (
-    <article className="rounded-md border border-subtle bg-surface-card p-5 space-y-4">
+    <button
+      type="button"
+      onClick={() => open({
+        kind: 'scenario',
+        eyebrow: 'Scenario detail',
+        title: scenario.config.name,
+        scenario,
+      })}
+      className="text-left rounded-md border border-subtle bg-surface-card p-5 space-y-4 hover:border-strong transition-colors duration-ui ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
       <header>
         <p className="text-eyebrow uppercase text-fg-tertiary">{scenario.config.risk_level}</p>
         <h4 className="text-h3 font-semibold text-fg-primary mt-1">{scenario.config.name}</h4>
@@ -64,7 +74,6 @@ function ScenarioCard({
         <Row label="Budget used"    value={`${p.budget_utilization_pct}%`} leader={false} />
       </dl>
 
-      {/* Category mix bar */}
       <div>
         <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Category mix</p>
         <div className="flex h-1.5 rounded-sm overflow-hidden bg-surface-inset">
@@ -93,7 +102,11 @@ function ScenarioCard({
           )}
         </div>
       </div>
-    </article>
+
+      <footer className="text-meta text-fg-tertiary pt-2 border-t border-subtle">
+        Click for full breakdown →
+      </footer>
+    </button>
   )
 }
 

@@ -1,12 +1,11 @@
 'use client'
 import { useMemo } from 'react'
 import { useFilters } from '@/context/FilterContext'
-import { DrillProvider, useDrill } from '@/context/DrillContext'
+import { useDrill } from '@/context/DrillContext'
 import { useEvents, useGaps, usePortfolio } from '@/lib/hooks'
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap'
 import { GapInsightsPanel } from '@/components/dashboard/GapInsightsPanel'
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary'
-import { DrillPanel } from '@/components/dashboard/DrillPanel'
 import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
 import { StatCard } from '@/components/ui/StatCard'
 import { TabNav } from '@/components/layout/TabNav'
@@ -26,15 +25,6 @@ const GROUP_COMPARE: Record<CityGroup, City> = {
 }
 
 export default function DashboardPage() {
-  return (
-    <DrillProvider>
-      <DashboardContent />
-      <DrillPanel />
-    </DrillProvider>
-  )
-}
-
-function DashboardContent() {
   const { cityGroup, category } = useFilters()
   const focusCity = GROUP_FOCUS[cityGroup]
   const compareCity = GROUP_COMPARE[cityGroup]

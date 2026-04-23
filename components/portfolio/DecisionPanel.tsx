@@ -1,3 +1,4 @@
+'use client'
 import type {
   DecisionPanel as DecisionPanelData,
   DecisionKind, EventDecision, CreateDecision, DecisionConfidence,
@@ -5,6 +6,7 @@ import type {
 } from '@/types'
 import { Skeleton, EmptyState } from '@/components/system/states'
 import { AiExplainButton } from '@/components/ai/AiExplainButton'
+import { useDrill } from '@/context/DrillContext'
 
 /**
  * 4-bucket director view: Fund · Scale · Drop · Create.
@@ -171,23 +173,46 @@ function ColumnHeader({ heading }: { heading: typeof HEADINGS[DecisionKind] }) {
 
 function EventDecisionRow({ entry, index }: { entry: EventDecision; index: number }) {
   const { event, reason, key_factors, confidence, kind } = entry
+  const { open } = useDrill()
   const perM = event.budget_allocated ? `AED ${(event.budget_allocated / 1_000_000).toFixed(1)}M` : '—'
 
+  const openDecision = () => {
+    const label = kind === 'fund' ? 'Fund' : kind === 'scale' ? 'Scale' : 'Drop'
+    open({
+      kind: 'event-decision',
+      eyebrow: `${label} recommendation`,
+      title: event.name,
+      decision: entry,
+    })
+  }
+
   return (
-    <li className="px-5 py-4">
-      <div className="flex items-start gap-3">
-        <span className="font-mono text-meta text-fg-tertiary tnum mt-1 w-4 shrink-0" data-tabular>{index}</span>
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-body-sm font-semibold text-fg-primary truncate">{event.name}</p>
-            <ConfidencePill confidence={confidence} />
+    <li>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={openDecision}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDecision() }
+        }}
+        className="px-5 py-4 hover:bg-surface-inset transition-colors duration-ui ease-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+      >
+        <div className="flex items-start gap-3">
+          <span className="font-mono text-meta text-fg-tertiary tnum mt-1 w-4 shrink-0" data-tabular>{index}</span>
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-body-sm font-semibold text-fg-primary truncate">{event.name}</p>
+              <ConfidencePill confidence={confidence} />
+            </div>
+            <p className="text-meta text-fg-tertiary">
+              {event.city} · {event.category} · <span className="tnum" data-tabular>{perM}</span>
+            </p>
+            <p className="text-meta text-fg-secondary leading-snug">{reason}</p>
+            <KeyFactors factors={key_factors} />
+            <div onClick={e => e.stopPropagation()}>
+              <AiExplainButton event={event} decision={kind} />
+            </div>
           </div>
-          <p className="text-meta text-fg-tertiary">
-            {event.city} · {event.category} · <span className="tnum" data-tabular>{perM}</span>
-          </p>
-          <p className="text-meta text-fg-secondary leading-snug">{reason}</p>
-          <KeyFactors factors={key_factors} />
-          <AiExplainButton event={event} decision={kind} />
         </div>
       </div>
     </li>
@@ -196,23 +221,35 @@ function EventDecisionRow({ entry, index }: { entry: EventDecision; index: numbe
 
 function CreateDecisionRow({ entry, index }: { entry: CreateDecision; index: number }) {
   const { concept, reason, key_factors, confidence } = entry
+  const { open } = useDrill()
 
   return (
-    <li className="px-5 py-4">
-      <div className="flex items-start gap-3">
-        <span className="font-mono text-meta text-fg-tertiary tnum mt-1 w-4 shrink-0" data-tabular>{index}</span>
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-body-sm font-semibold text-fg-primary truncate">{concept.title}</p>
-            <ConfidencePill confidence={confidence} />
+    <li>
+      <button
+        type="button"
+        onClick={() => open({
+          kind: 'create-decision',
+          eyebrow: 'New opportunity',
+          title: concept.title,
+          decision: entry,
+        })}
+        className="w-full text-left px-5 py-4 hover:bg-surface-inset transition-colors duration-ui ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+      >
+        <div className="flex items-start gap-3">
+          <span className="font-mono text-meta text-fg-tertiary tnum mt-1 w-4 shrink-0" data-tabular>{index}</span>
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-body-sm font-semibold text-fg-primary truncate">{concept.title}</p>
+              <ConfidencePill confidence={confidence} />
+            </div>
+            <p className="text-meta text-fg-tertiary">
+              {MONTH_NAMES[concept.suggested_month]} · {concept.suggested_city} · {concept.category}
+            </p>
+            <p className="text-meta text-fg-secondary leading-snug">{reason}</p>
+            <KeyFactors factors={key_factors} />
           </div>
-          <p className="text-meta text-fg-tertiary">
-            {MONTH_NAMES[concept.suggested_month]} · {concept.suggested_city} · {concept.category}
-          </p>
-          <p className="text-meta text-fg-secondary leading-snug">{reason}</p>
-          <KeyFactors factors={key_factors} />
         </div>
-      </div>
+      </button>
     </li>
   )
 }
