@@ -1,14 +1,12 @@
 'use client'
 import { useFilters } from '@/context/FilterContext'
-import {
-  useEvents, useGaps, useRecommendations, usePortfolio,
-} from '@/lib/hooks'
+import { useEvents, useGaps, usePortfolio } from '@/lib/hooks'
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap'
 import { GapInsightsPanel } from '@/components/dashboard/GapInsightsPanel'
-import { ConceptCard } from '@/components/concepts/ConceptCard'
+import { DecisionSummary } from '@/components/dashboard/DecisionSummary'
 import { StatCard } from '@/components/ui/StatCard'
 import { TabNav } from '@/components/layout/TabNav'
-import { Skeleton, SkeletonRows, ErrorFallback, EmptyState } from '@/components/system/states'
+import { Skeleton, ErrorFallback } from '@/components/system/states'
 import type { City, CityGroup } from '@/types'
 
 const GROUP_FOCUS: Record<CityGroup, City> = {
@@ -23,7 +21,6 @@ export default function DashboardPage() {
 
   const events      = useEvents({ city: focusCity, category, year: 2025 })
   const gaps        = useGaps({ cities: [focusCity], year: 2025, category })
-  const recs        = useRecommendations({ city: focusCity, category, limit: 3 })
   const portfolio   = usePortfolio({ city: focusCity, category })
 
   const report = gaps.reports[0] ?? null
@@ -48,8 +45,8 @@ export default function DashboardPage() {
               sub="Weighted empty or light slots" />
             <StatCard label="Avg Portfolio Score" value={(bundle?.summary.avg_portfolio_score ?? 0).toFixed(1)}
               sub="Weighted formula · /10" />
-            <StatCard label="Concepts Ready" value={recs.concepts.length}
-              sub="Generated from gaps" />
+            <StatCard label="New Opportunities" value={bundle?.decisions.create.length ?? 0}
+              sub="Critical gaps to source" />
           </>
         )}
       </section>
@@ -82,22 +79,14 @@ export default function DashboardPage() {
             : <GapInsightsPanel report={report} />}
         </section>
 
-        <section aria-label="Recommended concepts" className="rounded-md border border-subtle bg-surface-card p-6">
+        <section aria-label="Recommended actions" className="rounded-md border border-subtle bg-surface-card p-6">
           <header className="flex items-baseline justify-between mb-4">
-            <h2 className="text-h3 font-semibold text-fg-primary">Recommended Concepts</h2>
-            <span className="text-eyebrow uppercase text-fg-tertiary">Gap-sourced</span>
+            <h2 className="text-h3 font-semibold text-fg-primary">Recommended Actions</h2>
+            <span className="text-eyebrow uppercase text-fg-tertiary">Director view</span>
           </header>
-          {recs.error ? (
-            <ErrorFallback error={recs.error} onRetry={() => recs.mutate()} />
-          ) : recs.isLoading ? (
-            <SkeletonRows count={3} height="h-28" />
-          ) : recs.concepts.length === 0 ? (
-            <EmptyState title="No concepts for this filter." hint="Adjust the tabs to explore." />
-          ) : (
-            <div className="space-y-3">
-              {recs.concepts.map(c => <ConceptCard key={c.id} concept={c} />)}
-            </div>
-          )}
+          {portfolio.error
+            ? <ErrorFallback error={portfolio.error} onRetry={() => portfolio.mutate()} />
+            : <DecisionSummary data={bundle?.decisions} />}
         </section>
       </div>
     </div>
