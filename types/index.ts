@@ -118,17 +118,62 @@ export interface PortfolioSummary {
   by_city: Record<string, number>
 }
 
-export type DecisionKind = 'fund' | 'scale' | 'drop'
+export type DecisionKind = 'fund' | 'scale' | 'drop' | 'create'
 
-export interface DecisionEntry {
-  event: PortfolioEvent
+export type DecisionConfidence = 'High' | 'Medium' | 'Low'
+
+export type FactorSignal = 'positive' | 'negative' | 'neutral'
+
+export interface KeyFactor {
+  label: string
+  value: string
+  signal: FactorSignal
+}
+
+interface DecisionBase {
   reason: string
+  key_factors: KeyFactor[]
+  confidence: DecisionConfidence
+}
+
+export interface EventDecision extends DecisionBase {
+  kind: 'fund' | 'scale' | 'drop'
+  event: PortfolioEvent
+}
+
+export interface CreateDecision extends DecisionBase {
+  kind: 'create'
+  concept: EventConcept
+}
+
+/** @deprecated use EventDecision — kept for callers that still read .event + .reason */
+export type DecisionEntry = EventDecision
+
+export interface DecisionConstraints {
+  category_balance: Record<Category, { count: number; below_min: boolean }>
+  seasonality: {
+    peak_months: number[]
+    low_months: number[]
+  }
+  budget: {
+    total: number
+    allocated: number
+    within_limit: boolean
+    utilization_pct: number
+  }
+  competition: {
+    target_city: string
+    comparison_city: string
+    ad_deficit_slots: number   // number of month/category slots where target lags comparison
+  }
 }
 
 export interface DecisionPanel {
-  fund: DecisionEntry[]
-  scale: DecisionEntry[]
-  drop: DecisionEntry[]
+  fund: EventDecision[]
+  scale: EventDecision[]
+  drop: EventDecision[]
+  create: CreateDecision[]
+  constraints: DecisionConstraints
 }
 
 export interface PortfolioBundle {
