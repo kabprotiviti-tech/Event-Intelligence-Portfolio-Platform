@@ -77,6 +77,18 @@ export interface GapReport {
   }
 }
 
+export type GapSeverity = 'Critical' | 'Medium' | 'Low'
+
+export interface EnrichedGapSlot extends GapSlot {
+  severity: GapSeverity
+  competitor_context: string
+  recommendation_hint: string
+}
+
+export interface EnrichedGapReport extends Omit<GapReport, 'slots'> {
+  slots: EnrichedGapSlot[]
+}
+
 export interface EventConcept {
   id: string
   title: string
@@ -104,6 +116,26 @@ export interface PortfolioSummary {
   avg_portfolio_score: number
   by_category: Record<Category, number>
   by_city: Record<string, number>
+}
+
+export type DecisionKind = 'fund' | 'scale' | 'drop'
+
+export interface DecisionEntry {
+  event: PortfolioEvent
+  reason: string
+}
+
+export interface DecisionPanel {
+  fund: DecisionEntry[]
+  scale: DecisionEntry[]
+  drop: DecisionEntry[]
+}
+
+export interface PortfolioBundle {
+  events: PortfolioEvent[]
+  summary: PortfolioSummary
+  decisions: DecisionPanel
+  budget: number
 }
 
 export interface ApiResponse<T> {
