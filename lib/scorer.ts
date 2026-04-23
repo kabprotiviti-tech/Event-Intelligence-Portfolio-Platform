@@ -22,8 +22,10 @@ export function scoreEvent(event: Event): number {
     event.tourism_impact_score * WEIGHTS.tourism_impact +
     event.private_sector_score * WEIGHTS.private_sector
 
-  const modifier = TIER_MODIFIER[event.verification_level] ?? 1.0
-  return Math.round(raw * modifier * 10) / 10
+  const tierMod = TIER_MODIFIER[event.verification_level] ?? 1.0
+  // Small boost from impact_weight (1–5): up to +5%
+  const impactMod = 1 + (event.impact_weight - 3) * 0.025
+  return Math.round(raw * tierMod * impactMod * 10) / 10
 }
 
 export function buildPortfolio(events: Event[]): PortfolioEvent[] {
@@ -36,7 +38,7 @@ export function buildPortfolio(events: Event[]): PortfolioEvent[] {
 
 export function simulateBudget(
   events: PortfolioEvent[],
-  totalBudget: number
+  totalBudget: number,
 ): PortfolioEvent[] {
   const sorted = [...events].sort((a, b) => b.portfolio_score - a.portfolio_score)
   const totalScore = sorted.reduce((sum, e) => sum + e.portfolio_score, 0)
@@ -44,6 +46,5 @@ export function simulateBudget(
   return sorted.map(e => ({
     ...e,
     budget_allocated: Math.round((e.portfolio_score / totalScore) * totalBudget),
-    status: 'Active' as const,
   }))
 }

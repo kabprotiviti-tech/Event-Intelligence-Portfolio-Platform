@@ -23,6 +23,17 @@ export function ConceptCard({ concept }: { concept: EventConcept }) {
 
       <p className="text-xs text-slate-500 leading-relaxed">{concept.reason}</p>
 
+      {concept.reference_events.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          <span className="text-[10px] text-slate-400 uppercase tracking-widest font-medium mr-1">Refs:</span>
+          {concept.reference_events.slice(0, 3).map(id => (
+            <span key={id} className="inline-flex px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-mono text-slate-500">
+              {id}
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs text-slate-400">
         <span>Est. Audience: <span className="font-semibold text-slate-700">{concept.estimated_audience.toLocaleString()}</span></span>
         <span>Gap Score: <span className="font-semibold text-slate-700">{Math.round(concept.gap_score * 100)}%</span></span>

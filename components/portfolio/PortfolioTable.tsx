@@ -32,7 +32,7 @@ export function PortfolioTable({ events }: { events: PortfolioEvent[] }) {
               <td className="py-2.5 pr-4 font-medium text-slate-800 max-w-[200px] truncate">{e.name}</td>
               <td className="py-2.5 pr-4"><CategoryBadge category={e.category} /></td>
               <td className="py-2.5 pr-4 text-slate-600">{e.city}</td>
-              <td className="py-2.5 pr-4 text-slate-500 text-xs">{new Date(e.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td>
+              <td className="py-2.5 pr-4 text-slate-500 text-xs">{new Date(e.start_date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td>
               <td className="py-2.5 pr-4 text-slate-600">{e.estimated_attendance.toLocaleString()}</td>
               <td className="py-2.5 pr-4"><ScoreBar score={e.portfolio_score} /></td>
               <td className="py-2.5 text-slate-600 text-xs">

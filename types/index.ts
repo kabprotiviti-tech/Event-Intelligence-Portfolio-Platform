@@ -2,6 +2,8 @@ export type Category = 'Family' | 'Entertainment' | 'Sports'
 
 export type City = 'Abu Dhabi' | 'Dubai' | 'Riyadh' | 'Doha' | 'Muscat'
 
+export type CityGroup = 'Abu Dhabi' | 'Dubai' | 'GCC'
+
 export type SourceType = 'government' | 'marketplace' | 'news'
 
 export type VerificationLevel = 'Tier 1' | 'Tier 2' | 'Tier 3'
@@ -17,7 +19,9 @@ export type TourismOrigin =
 
 export type IndoorOutdoor = 'Indoor' | 'Outdoor' | 'Mixed'
 
-export type EventStatus = 'Active' | 'Proposed' | 'Under Review' | 'Dropped'
+export type EventStatus = 'Active' | 'Proposed' | 'Under Review' | 'Dropped' | 'Approved'
+
+export type EventFormat = 'Festival' | 'Concert' | 'Tournament' | 'Exhibition' | 'Conference'
 
 export interface TicketPriceRange {
   min: number
@@ -29,10 +33,11 @@ export interface Event {
   id: string
   name: string
   category: Category
+  event_format: EventFormat
   city: City
   country: string
-  date: string
-  endDate?: string
+  start_date: string
+  end_date?: string
   venue: string
   estimated_attendance: number
   ticket_price_range: TicketPriceRange
@@ -40,6 +45,8 @@ export interface Event {
   verification_level: VerificationLevel
   tourism_origin: TourismOrigin
   indoor_outdoor: IndoorOutdoor
+  impact_weight: 1 | 2 | 3 | 4 | 5
+  min_budget_required: number
   roi_score: number
   strategic_fit_score: number
   seasonality_score: number
@@ -54,6 +61,7 @@ export interface GapSlot {
   category: Category
   city: City
   event_count: number
+  weighted_density: number
   density: 'empty' | 'light' | 'moderate' | 'heavy'
   gap_score: number
 }
@@ -73,10 +81,13 @@ export interface EventConcept {
   id: string
   title: string
   category: Category
+  event_format: EventFormat
   suggested_month: number
   suggested_city: City
   estimated_audience: number
+  estimated_budget: number
   reason: string
+  reference_events: string[]
   gap_score: number
   confidence: 'High' | 'Medium' | 'Low'
 }

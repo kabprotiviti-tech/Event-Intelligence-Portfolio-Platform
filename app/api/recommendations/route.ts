@@ -10,9 +10,8 @@ export async function GET(req: NextRequest) {
 
   const events = await getEvents({ year })
   const adReport = detectGaps(events, 'Abu Dhabi', year)
-  const dubaiReport = detectGaps(events, 'Dubai', year)
 
-  const concepts = generateRecommendations(adReport, dubaiReport, limit)
+  const concepts = generateRecommendations(adReport, events, limit)
 
   return NextResponse.json({
     data: concepts,
