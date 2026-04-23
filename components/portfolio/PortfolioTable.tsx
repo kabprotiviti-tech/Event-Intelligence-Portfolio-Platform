@@ -1,6 +1,7 @@
 'use client'
 import type { PortfolioEvent } from '@/types'
 import { CategoryBadge } from '@/components/ui/Badge'
+import { SourceBadge } from '@/components/ui/SourceBadge'
 
 function ScoreBar({ score }: { score: number }) {
   const pct = (score / 10) * 100
@@ -25,6 +26,7 @@ const HEADERS = [
   { id: 'category',   label: 'Category',   align: 'left'  },
   { id: 'city',       label: 'City',       align: 'left'  },
   { id: 'date',       label: 'Date',       align: 'left'  },
+  { id: 'source',     label: 'Source',     align: 'left'  },
   { id: 'attendance', label: 'Attendance', align: 'right' },
   { id: 'score',      label: 'Score',      align: 'left'  },
   { id: 'budget',     label: 'Budget',     align: 'right' },
@@ -79,6 +81,14 @@ export function PortfolioTable({ events }: { events: PortfolioEvent[] }) {
               <td className="py-3 pr-4 text-fg-secondary">{e.city}</td>
               <td className="py-3 pr-4 text-fg-tertiary text-body-sm tnum">
                 {new Date(e.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+              </td>
+              <td className="py-3 pr-4">
+                <SourceBadge
+                  source_type={e.source_type}
+                  verification_level={e.verification_level}
+                  source_label={e.source_label}
+                  compact
+                />
               </td>
               <td className="py-3 pr-4 text-fg-secondary text-right tnum">
                 {e.estimated_attendance.toLocaleString()}

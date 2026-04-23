@@ -47,6 +47,8 @@ export interface Event {
   indoor_outdoor: IndoorOutdoor
   impact_weight: 1 | 2 | 3 | 4 | 5
   min_budget_required: number
+  source_url?: string           // provenance link (news / ticketing / gov calendar)
+  source_label?: string         // human label: "DCT Calendar", "Ticketmaster UAE", etc.
   roi_score: number
   strategic_fit_score: number
   seasonality_score: number

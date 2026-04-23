@@ -1,5 +1,6 @@
 import type { Event } from '@/types'
 import { CategoryBadge } from './Badge'
+import { SourceBadge } from './SourceBadge'
 
 export function EventCard({ event }: { event: Event }) {
   const d = new Date(event.start_date)
@@ -14,11 +15,17 @@ export function EventCard({ event }: { event: Event }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-body font-semibold text-fg-primary truncate">{event.name}</p>
-        <div className="flex items-center gap-2 mt-1 text-meta text-fg-tertiary">
+        <div className="flex items-center flex-wrap gap-2 mt-1 text-meta text-fg-tertiary">
           <CategoryBadge category={event.category} />
-          <span>·</span>
+          <SourceBadge
+            source_type={event.source_type}
+            verification_level={event.verification_level}
+            source_label={event.source_label}
+            compact
+          />
+          <span aria-hidden>·</span>
           <span>{event.city}</span>
-          <span>·</span>
+          <span aria-hidden>·</span>
           <span className="tnum" data-tabular>{event.estimated_attendance.toLocaleString()}</span>
           <span>guests</span>
         </div>
