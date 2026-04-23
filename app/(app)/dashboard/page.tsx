@@ -4,6 +4,7 @@ import { useEvents, useGaps, usePortfolio } from '@/lib/hooks'
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap'
 import { GapInsightsPanel } from '@/components/dashboard/GapInsightsPanel'
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary'
+import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
 import { StatCard } from '@/components/ui/StatCard'
 import { TabNav } from '@/components/layout/TabNav'
 import { Skeleton, ErrorFallback } from '@/components/system/states'
@@ -89,6 +90,20 @@ export default function DashboardPage() {
             : <DecisionSummary data={bundle?.decisions} />}
         </section>
       </div>
+
+      {/* AI Insights — narrative layer over the rules engine */}
+      <section aria-label="AI insights" className="rounded-md border border-subtle bg-surface-card p-6">
+        <header className="flex items-baseline justify-between mb-5">
+          <div>
+            <h2 className="text-h3 font-semibold text-fg-primary">AI Insights</h2>
+            <p className="text-meta text-fg-tertiary mt-0.5">
+              Claude narrative · falls back to rules when unavailable
+            </p>
+          </div>
+          <span className="text-eyebrow uppercase text-fg-tertiary">Strategy · Trends</span>
+        </header>
+        <AiInsightsPanel city={focusCity} category={category} />
+      </section>
     </div>
   )
 }

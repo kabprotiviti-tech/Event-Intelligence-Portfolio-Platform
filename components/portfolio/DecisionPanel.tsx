@@ -4,6 +4,7 @@ import type {
   KeyFactor, DecisionConstraints,
 } from '@/types'
 import { Skeleton, EmptyState } from '@/components/system/states'
+import { AiExplainButton } from '@/components/ai/AiExplainButton'
 
 /**
  * 4-bucket director view: Fund · Scale · Drop · Create.
@@ -169,7 +170,7 @@ function ColumnHeader({ heading }: { heading: typeof HEADINGS[DecisionKind] }) {
 /* ─── Rows ───────────────────────────────────────────────────── */
 
 function EventDecisionRow({ entry, index }: { entry: EventDecision; index: number }) {
-  const { event, reason, key_factors, confidence } = entry
+  const { event, reason, key_factors, confidence, kind } = entry
   const perM = event.budget_allocated ? `AED ${(event.budget_allocated / 1_000_000).toFixed(1)}M` : '—'
 
   return (
@@ -186,6 +187,7 @@ function EventDecisionRow({ entry, index }: { entry: EventDecision; index: numbe
           </p>
           <p className="text-meta text-fg-secondary leading-snug">{reason}</p>
           <KeyFactors factors={key_factors} />
+          <AiExplainButton event={event} decision={kind} />
         </div>
       </div>
     </li>

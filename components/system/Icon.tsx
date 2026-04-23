@@ -140,6 +140,13 @@ export const TrendFlatIcon = (p: IconProps) => (
   </svg>
 )
 
+export const SparkleIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M8 2l1.4 3.6L13 7l-3.6 1.4L8 12l-1.4-3.6L3 7l3.6-1.4z" />
+    <path d="M13 11l.5 1.2L14.7 12.7 13.5 13.2 13 14.4 12.5 13.2 11.3 12.7 12.5 12.2z" />
+  </svg>
+)
+
 export const MenuIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M2 4h12M2 8h12M2 12h12" />

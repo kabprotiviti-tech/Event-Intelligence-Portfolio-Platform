@@ -7,4 +7,5 @@ export {
 export { useApprovedConcepts } from './useApprovedConcepts'
 export { useChairmanBrief } from './useChairmanBrief'
 export { useScenarioPresets, runScenarios } from './useScenarios'
+export { useAiSummary, useAiTrends, useAiExplain, useAiConcept } from './useAi'
 export { fetcher, qs, ApiError } from './fetcher'

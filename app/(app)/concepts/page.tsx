@@ -5,6 +5,7 @@ import { useRecommendations, useApprovedConcepts, approveConcept } from '@/lib/h
 import { TabNav } from '@/components/layout/TabNav'
 import { CategoryBadge, ConfidenceBadge } from '@/components/ui/Badge'
 import { CheckIcon, ArrowRightIcon } from '@/components/system/Icon'
+import { AiAlternativeConcept } from '@/components/ai/AiAlternativeConcept'
 import { SkeletonRows, ErrorFallback, EmptyState } from '@/components/system/states'
 import type { City, CityGroup, EventConcept } from '@/types'
 
@@ -150,6 +151,14 @@ function ConceptFull({
       {err && (
         <p role="alert" className="text-meta text-negative">{err}</p>
       )}
+
+      <div className="pt-2 border-t border-subtle">
+        <AiAlternativeConcept
+          city={concept.suggested_city}
+          month={concept.suggested_month}
+          category={concept.category}
+        />
+      </div>
 
       <footer className="flex items-center justify-between pt-2">
         <div className="text-meta text-fg-tertiary">
