@@ -1,6 +1,7 @@
 import type {
   Category, City, EventConcept, Event, EventFormat, GapReport,
 } from '@/types'
+import { computeCategoryTrends, trendBoost, type CategoryTrends } from './trend-analyzer'
 
 const MONTH_NAMES = [
   '', 'January', 'February', 'March', 'April', 'May', 'June',
@@ -32,15 +33,6 @@ const TEMPLATES: ConceptTemplate[] = [
   { title: 'Saadiyat Tennis Open',                category: 'Sports',        event_format: 'Tournament', base_audience: 22000, base_budget: 12_000_000 },
 ]
 
-function buildReason(city: City, month: number, category: Category, refs: Event[]): string {
-  const m = MONTH_NAMES[month]
-  if (refs.length) {
-    const names = refs.slice(0, 2).map(r => r.name).join(', ')
-    return `${city} has no ${category} events in ${m}. Regional precedent: ${names}. High-impact gap with proven demand signal.`
-  }
-  return `${city} has no ${category} events in ${m}. Low-competition window — strong first-mover opportunity.`
-}
-
 function confidenceFor(gap: number): EventConcept['confidence'] {
   if (gap >= 0.9) return 'High'
   if (gap >= 0.6) return 'Medium'
@@ -49,30 +41,62 @@ function confidenceFor(gap: number): EventConcept['confidence'] {
 
 let idCounter = 0
 
+interface ScoredSlot {
+  month: number
+  category: Category
+  city: City
+  gap_score: number
+  composite: number   // gap_score * trendBoost
+}
+
+export interface RecommenderOptions {
+  limit?: number
+  comparableCities?: City[]
+  /** Supply trend data to bias recommendations toward what external sources are signalling. */
+  trends?: CategoryTrends
+}
+
 export function generateRecommendations(
   adReport: GapReport,
   allEvents: Event[],
-  limit = 6,
-  comparableCities: City[] = ['Dubai', 'Riyadh', 'Doha'],
+  limitOrOpts: number | RecommenderOptions = 6,
+  legacyComparable?: City[],
 ): EventConcept[] {
-  const highGapSlots = adReport.slots
-    .filter(s => s.gap_score >= 0.6)
-    .sort((a, b) => b.gap_score - a.gap_score)
+  // Backwards-compatible signature — callers pass `limit` + optional `comparableCities`
+  const opts: RecommenderOptions =
+    typeof limitOrOpts === 'number'
+      ? { limit: limitOrOpts, comparableCities: legacyComparable }
+      : limitOrOpts
 
-  const used = new Set<string>()
+  const limit = opts.limit ?? 6
+  const comparableCities = opts.comparableCities ?? ['Dubai', 'Riyadh', 'Doha']
+  const trends = opts.trends ?? computeCategoryTrends(allEvents)
+
+  // Score each high-gap slot by (gap_score × category trend boost).
+  // Gap still dominates — trends are a tiebreaker, not an override.
+  const scoredSlots: ScoredSlot[] = adReport.slots
+    .filter(s => s.gap_score >= 0.6)
+    .map(s => ({
+      month: s.month,
+      category: s.category,
+      city: s.city,
+      gap_score: s.gap_score,
+      composite: s.gap_score * trendBoost(trends, s.category),
+    }))
+    .sort((a, b) => b.composite - a.composite)
+
+  const usedTitles = new Set<string>()
   const concepts: EventConcept[] = []
 
-  for (const slot of highGapSlots) {
+  for (const slot of scoredSlots) {
     if (concepts.length >= limit) break
 
     const template = TEMPLATES.find(
-      t => t.category === slot.category && !used.has(t.title)
+      t => t.category === slot.category && !usedTitles.has(t.title)
     )
     if (!template) continue
+    usedTitles.add(template.title)
 
-    used.add(template.title)
-
-    // Find reference events: same category in same month in comparable cities
     const referenceEvents = allEvents.filter(e => {
       const d = new Date(e.start_date)
       return (
@@ -91,7 +115,7 @@ export function generateRecommendations(
       suggested_city: slot.city,
       estimated_audience: Math.round(template.base_audience * (1 + slot.gap_score * 0.3)),
       estimated_budget: template.base_budget,
-      reason: buildReason(slot.city, slot.month, slot.category, referenceEvents),
+      reason: buildReason(slot.city, slot.month, slot.category, referenceEvents, slot, trends),
       reference_events: referenceEvents.map(e => e.id),
       gap_score: slot.gap_score,
       confidence: confidenceFor(slot.gap_score),
@@ -99,4 +123,38 @@ export function generateRecommendations(
   }
 
   return concepts
+}
+
+/**
+ * Reason citations now include a trend note when the external-source signal
+ * for this category is strongly above or below average — director sees WHY
+ * the rec is ordered the way it is.
+ */
+function buildReason(
+  city: City,
+  month: number,
+  category: Category,
+  refs: Event[],
+  slot: ScoredSlot,
+  trends: CategoryTrends,
+): string {
+  const m = MONTH_NAMES[month]
+  const base = refs.length
+    ? `${city} has no ${category} events in ${m}. Regional precedent: ${refs.slice(0, 2).map(r => r.name).join(', ')}.`
+    : `${city} has no ${category} events in ${m}. Low-competition window.`
+
+  const trendNote = trendNoteFor(category, trends)
+  return trendNote ? `${base} ${trendNote}` : `${base} High-impact gap with proven demand signal.`
+}
+
+function trendNoteFor(category: Category, trends: CategoryTrends): string | null {
+  if (trends.total === 0) return null
+  const share = trends[category] / trends.total
+  if (share >= 0.45) {
+    return `External signal is hot: ${Math.round(share * 100)}% of recent news + ticket chatter.`
+  }
+  if (share <= 0.20) {
+    return `External signal is quiet here — early-mover timing.`
+  }
+  return null
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getEvents } from '@/lib/data-provider'
 import { detectGaps } from '@/lib/gap-detector'
 import { generateRecommendations } from '@/lib/recommender'
+import { computeCategoryTrends } from '@/lib/trend-analyzer'
 import { getApprovedConceptIds } from '@/lib/store/portfolio-store'
 import type { Category, City } from '@/types'
 
@@ -18,11 +19,13 @@ export async function GET(req: NextRequest) {
   const scoped = category ? events.filter(e => e.category === category) : events
   const report = detectGaps(scoped, city, year)
 
-  const all = generateRecommendations(report, events, limit * 2)
+  // Compute category trends from the full event stream (live sources carry source_type
+  // of "news" or "marketplace" — those drive the trend signal; mock data is source_type
+  // "government" which is down-weighted).
+  const trends = computeCategoryTrends(events)
 
-  // Filter out concepts already approved (server-side) so the list stays
-  // focused on open opportunities. Client still shows approved-state if
-  // the concept re-appears from a later regen.
+  const all = generateRecommendations(report, events, { limit: limit * 2, trends })
+
   const approved = new Set(getApprovedConceptIds())
   const concepts = all.filter(c => !approved.has(c.id)).slice(0, limit)
 
@@ -31,7 +34,16 @@ export async function GET(req: NextRequest) {
     meta: {
       count: concepts.length,
       filtered_approved: all.length - concepts.length,
+      trend_signal: {
+        Family:        round(trends.Family),
+        Entertainment: round(trends.Entertainment),
+        Sports:        round(trends.Sports),
+      },
       generated_at: new Date().toISOString(),
     },
   })
+}
+
+function round(n: number) {
+  return Math.round(n * 10) / 10
 }
