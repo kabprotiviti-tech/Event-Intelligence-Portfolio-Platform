@@ -1,36 +1,41 @@
 'use client'
 import { useFilters } from '@/context/FilterContext'
 import type { Category } from '@/types'
-import clsx from 'clsx'
+import { AllIcon, FamilyIcon, EntertainmentIcon, SportsIcon } from '@/components/system/Icon'
 
-const TABS: Array<Category | 'All'> = ['All', 'Family', 'Entertainment', 'Sports']
-
-const ICON: Record<string, string> = {
-  All: '◉',
-  Family: '◐',
-  Entertainment: '♪',
-  Sports: '◆',
-}
+const TABS: Array<{ id: Category | 'All'; Icon: React.ComponentType<{ className?: string }> }> = [
+  { id: 'All',           Icon: AllIcon },
+  { id: 'Family',        Icon: FamilyIcon },
+  { id: 'Entertainment', Icon: EntertainmentIcon },
+  { id: 'Sports',        Icon: SportsIcon },
+]
 
 export function TabNav() {
   const { category, setCategory } = useFilters()
+
   return (
-    <div className="flex items-end gap-0 border-b border-slate-200 -mb-px">
-      {TABS.map(t => (
-        <button
-          key={t}
-          onClick={() => setCategory(t)}
-          className={clsx(
-            'px-5 py-3 text-[13px] font-medium transition-colors relative -mb-px',
-            category === t
-              ? 'text-slate-900 border-b-2 border-[#0a1a33]'
-              : 'text-slate-500 hover:text-slate-700 border-b-2 border-transparent'
-          )}
-        >
-          <span className="mr-1.5 opacity-50">{ICON[t]}</span>
-          {t}
-        </button>
-      ))}
+    <div role="tablist" aria-label="Category filter" className="flex items-end border-b border-subtle">
+      {TABS.map(({ id, Icon }) => {
+        const selected = category === id
+        return (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={selected}
+            tabIndex={selected ? 0 : -1}
+            onClick={() => setCategory(id)}
+            className={[
+              'flex items-center gap-2 px-5 h-10 text-body-sm font-medium transition-colors duration-ui ease-out relative -mb-px',
+              selected
+                ? 'text-fg-primary border-b-2 border-accent'
+                : 'text-fg-tertiary hover:text-fg-primary border-b-2 border-transparent',
+            ].join(' ')}
+          >
+            <Icon className={selected ? 'text-accent' : 'text-fg-tertiary'} />
+            {id}
+          </button>
+        )
+      })}
     </div>
   )
 }

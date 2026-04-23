@@ -1,25 +1,43 @@
-import clsx from 'clsx'
 import type { Category } from '@/types'
 
-const CATEGORY_COLORS: Record<Category, string> = {
-  Family:        'bg-blue-50 text-blue-700',
-  Entertainment: 'bg-purple-50 text-purple-700',
-  Sports:        'bg-orange-50 text-orange-700',
+/**
+ * Outline-only badges — never filled. Color discipline:
+ *   Category  → text color only, no background
+ *   Confidence → border + matching text color
+ * One visual language, works on any theme.
+ */
+
+interface BadgeProps {
+  children: React.ReactNode
+  className?: string
+}
+
+function Pill({ children, className = '' }: BadgeProps) {
+  return (
+    <span className={`inline-flex items-center px-2 h-5 rounded-sm border text-meta font-medium ${className}`}>
+      {children}
+    </span>
+  )
 }
 
 export function CategoryBadge({ category }: { category: Category }) {
+  // All categories render with the same neutral chrome — differentiation comes from icons elsewhere,
+  // not from arbitrary color mapping. Discipline over decoration.
   return (
-    <span className={clsx('inline-flex px-2 py-0.5 rounded text-xs font-medium', CATEGORY_COLORS[category])}>
+    <Pill className="border-subtle text-fg-secondary">
       {category}
-    </span>
+    </Pill>
   )
 }
 
 export function ConfidenceBadge({ level }: { level: 'High' | 'Medium' | 'Low' }) {
-  const colors = { High: 'bg-emerald-50 text-emerald-700', Medium: 'bg-amber-50 text-amber-700', Low: 'bg-red-50 text-red-700' }
-  return (
-    <span className={clsx('inline-flex px-2 py-0.5 rounded text-xs font-medium', colors[level])}>
-      {level}
-    </span>
-  )
+  const cls =
+    level === 'High'   ? 'border-positive/40 text-positive'
+    : level === 'Medium' ? 'border-caution/40 text-caution'
+    :                     'border-negative/40 text-negative'
+  return <Pill className={cls}>{level}</Pill>
+}
+
+export function TierBadge({ tier }: { tier: 'Tier 1' | 'Tier 2' | 'Tier 3' }) {
+  return <Pill className="border-subtle text-fg-tertiary font-mono">{tier}</Pill>
 }

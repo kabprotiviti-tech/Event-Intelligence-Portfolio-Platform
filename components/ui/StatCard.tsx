@@ -1,44 +1,40 @@
-import clsx from 'clsx'
-
 interface Props {
   label: string
   value: string | number
   sub?: string
-  trend?: { direction: 'up' | 'down' | 'flat', value: string }
-  accent?: boolean
-  icon?: React.ReactNode
+  trend?: { direction: 'up' | 'down' | 'flat'; value: string }
+  priority?: boolean
 }
 
-export function StatCard({ label, value, sub, trend, accent, icon }: Props) {
+/**
+ * Data-first KPI block. No gradients, no icons, no trend chips.
+ * The *only* expression of priority is a 2px left rail in accent.
+ */
+export function StatCard({ label, value, sub, trend, priority }: Props) {
   return (
-    <div className={clsx(
-      'relative rounded-xl border bg-white p-5 overflow-hidden transition-all hover:shadow-sm',
-      accent ? 'border-slate-200' : 'border-slate-200'
-    )}>
-      {accent && (
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#c9a84c] via-[#e0c978] to-transparent" />
+    <div className="relative rounded-md border border-subtle bg-surface-card p-5 transition-colors duration-ui ease-out hover:border-strong">
+      {priority && (
+        <div aria-hidden className="absolute top-0 bottom-0 left-0 w-[2px] bg-accent rounded-sm" />
       )}
-      <div className="flex items-start justify-between mb-3">
-        <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-[0.12em]">{label}</p>
-        {icon && <div className="text-slate-300">{icon}</div>}
-      </div>
-      <p className={clsx(
-        'text-[28px] font-bold leading-none tracking-tight',
-        accent ? 'text-[#0a1a33]' : 'text-slate-900'
-      )}>
+      <p className="text-eyebrow uppercase text-fg-tertiary">{label}</p>
+      <p className="text-display font-semibold text-fg-primary mt-3 tnum leading-none" data-tabular>
         {value}
       </p>
-      <div className="flex items-center gap-2 mt-2.5">
-        {sub && <p className="text-xs text-slate-500">{sub}</p>}
-        {trend && (
-          <span className={clsx(
-            'inline-flex items-center gap-0.5 text-[11px] font-medium',
-            trend.direction === 'up' ? 'text-emerald-600' : trend.direction === 'down' ? 'text-red-500' : 'text-slate-500'
-          )}>
-            {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '→'} {trend.value}
-          </span>
-        )}
-      </div>
+      {(sub || trend) && (
+        <div className="flex items-center gap-2 mt-3 text-meta text-fg-tertiary">
+          {sub && <span>{sub}</span>}
+          {trend && (
+            <span
+              className={
+                trend.direction === 'up' ? 'text-positive' :
+                trend.direction === 'down' ? 'text-negative' : 'text-fg-tertiary'
+              }
+            >
+              {trend.direction === 'up' ? '+' : trend.direction === 'down' ? '−' : ''}{trend.value}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
