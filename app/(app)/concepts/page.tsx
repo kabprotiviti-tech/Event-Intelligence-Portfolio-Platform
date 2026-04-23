@@ -1,12 +1,11 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useFilters } from '@/context/FilterContext'
-import { allEvents } from '@/data'
-import { detectGaps } from '@/lib/gap-detector'
-import { generateRecommendations } from '@/lib/recommender'
+import { useRecommendations, useApprovedConcepts, approveConcept } from '@/lib/hooks'
 import { TabNav } from '@/components/layout/TabNav'
 import { CategoryBadge, ConfidenceBadge } from '@/components/ui/Badge'
 import { CheckIcon, ArrowRightIcon } from '@/components/system/Icon'
+import { SkeletonRows, ErrorFallback, EmptyState } from '@/components/system/states'
 import type { City, CityGroup, EventConcept } from '@/types'
 
 const MONTH_NAMES = [
@@ -14,30 +13,18 @@ const MONTH_NAMES = [
   'July','August','September','October','November','December',
 ]
 
-const GROUP_CITIES: Record<CityGroup, City[]> = {
-  'Abu Dhabi': ['Abu Dhabi'],
-  'Dubai':     ['Dubai'],
-  'GCC':       ['Riyadh', 'Doha'],
+const GROUP_FOCUS: Record<CityGroup, City> = {
+  'Abu Dhabi': 'Abu Dhabi',
+  'Dubai':     'Dubai',
+  'GCC':       'Riyadh',
 }
 
 export default function ConceptsPage() {
   const { cityGroup, category } = useFilters()
-  const [approved, setApproved] = useState<Set<string>>(new Set())
-
-  const concepts = useMemo(() => {
-    const focus = GROUP_CITIES[cityGroup][0]
-    const scoped = category === 'All' ? allEvents : allEvents.filter(e => e.category === category)
-    const report = detectGaps(scoped, focus, 2025)
-    return generateRecommendations(report, allEvents, 12)
-  }, [cityGroup, category])
-
-  function toggleApprove(id: string) {
-    setApproved(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id); else next.add(id)
-      return next
-    })
-  }
+  const { concepts, isLoading, error, mutate } = useRecommendations({
+    city: GROUP_FOCUS[cityGroup], category, limit: 12,
+  })
+  const approved = useApprovedConcepts()
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6">
@@ -45,35 +32,40 @@ export default function ConceptsPage() {
 
       <div className="flex items-center justify-between">
         <p className="text-meta text-fg-tertiary tnum" data-tabular>
-          {concepts.length} concept{concepts.length === 1 ? '' : 's'} generated
-          <span className="mx-2">·</span>
-          <span className="text-positive font-medium">{approved.size} approved</span>
+          {isLoading ? 'Loading…' : `${concepts.length} concept${concepts.length === 1 ? '' : 's'} generated`}
+          {!isLoading && (
+            <>
+              <span className="mx-2">·</span>
+              <span className="text-positive font-medium">{approved.ids.size} approved</span>
+            </>
+          )}
         </p>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 text-meta font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-ui ease-out"
-        >
-          Export to portfolio <ArrowRightIcon />
-        </button>
       </div>
 
-      {concepts.length === 0 && (
-        <div className="rounded-md border border-dashed border-subtle bg-surface-card p-12 text-center">
-          <p className="text-body-sm text-fg-secondary">No gaps detected for this filter.</p>
-          <p className="text-meta text-fg-tertiary mt-1">Try a different category or city scope.</p>
+      {error ? (
+        <ErrorFallback error={error} onRetry={() => mutate()} />
+      ) : isLoading ? (
+        <div className="grid md:grid-cols-2 gap-4">
+          <SkeletonRows count={4} height="h-64" />
+          <SkeletonRows count={4} height="h-64" />
+        </div>
+      ) : concepts.length === 0 ? (
+        <EmptyState
+          title="No gaps detected for this filter."
+          hint="Try a different category or city scope."
+        />
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {concepts.map(c => (
+            <ConceptFull
+              key={c.id}
+              concept={c}
+              approved={approved.has(c.id)}
+              onApprove={() => approved.toggle(c.id)}
+            />
+          ))}
         </div>
       )}
-
-      <div className="grid md:grid-cols-2 gap-4">
-        {concepts.map(c => (
-          <ConceptFull
-            key={c.id}
-            concept={c}
-            approved={approved.has(c.id)}
-            onApprove={() => toggleApprove(c.id)}
-          />
-        ))}
-      </div>
     </div>
   )
 }
@@ -85,6 +77,29 @@ function ConceptFull({
   approved: boolean
   onApprove: () => void
 }) {
+  const [pending, startTransition] = useTransition()
+  const [err, setErr] = useState<string | null>(null)
+
+  async function handleClick() {
+    setErr(null)
+
+    // Optimistic highlight
+    onApprove()
+
+    if (!approved) {
+      // Only POST on going-from-false-to-true
+      startTransition(async () => {
+        try {
+          await approveConcept(concept)
+        } catch (e) {
+          // Rollback highlight on failure
+          onApprove()
+          setErr(e instanceof Error ? e.message : 'Approve failed')
+        }
+      })
+    }
+  }
+
   return (
     <article
       className={[
@@ -112,8 +127,8 @@ function ConceptFull({
       </header>
 
       <dl className="grid grid-cols-3 gap-3 py-3 border-y border-subtle">
-        <Field term="Timing"     def={MONTH_NAMES[concept.suggested_month]} />
-        <Field term="City"       def={concept.suggested_city} />
+        <Field term="Timing"        def={MONTH_NAMES[concept.suggested_month]} />
+        <Field term="City"          def={concept.suggested_city} />
         <Field term="Est. audience" def={concept.estimated_audience.toLocaleString()} tnum />
       </dl>
 
@@ -132,6 +147,10 @@ function ConceptFull({
         </div>
       )}
 
+      {err && (
+        <p role="alert" className="text-meta text-negative">{err}</p>
+      )}
+
       <footer className="flex items-center justify-between pt-2">
         <div className="text-meta text-fg-tertiary">
           Gap score{' '}
@@ -146,16 +165,18 @@ function ConceptFull({
         </div>
         <button
           type="button"
-          onClick={onApprove}
+          onClick={handleClick}
+          disabled={pending}
           aria-pressed={approved}
           className={[
-            'px-4 h-8 rounded-sm text-meta font-semibold transition-colors duration-ui ease-out',
+            'inline-flex items-center gap-1.5 px-4 h-8 rounded-sm text-meta font-semibold transition-colors duration-ui ease-out',
+            'disabled:opacity-50 disabled:cursor-progress',
             approved
-              ? 'bg-surface-inset text-positive hover:bg-surface-canvas border border-positive/30'
+              ? 'bg-surface-inset text-positive border border-positive/30 hover:bg-surface-canvas'
               : 'bg-accent text-accent-ink hover:opacity-90',
           ].join(' ')}
         >
-          {approved ? 'Approved · Undo' : 'Approve Concept'}
+          {pending ? 'Saving…' : approved ? 'Approved · Undo' : <>Approve & add to portfolio <ArrowRightIcon /></>}
         </button>
       </footer>
     </article>

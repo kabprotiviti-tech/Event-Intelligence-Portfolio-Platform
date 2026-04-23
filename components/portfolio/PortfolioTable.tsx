@@ -62,7 +62,19 @@ export function PortfolioTable({ events }: { events: PortfolioEvent[] }) {
               key={e.id}
               className="border-b border-subtle last:border-0 hover:bg-surface-inset transition-colors duration-ui ease-out"
             >
-              <td className="py-3 pr-4 font-medium text-fg-primary max-w-[240px] truncate">{e.name}</td>
+              <td className="py-3 pr-4 font-medium text-fg-primary max-w-[240px] truncate">
+                <div className="flex items-center gap-2">
+                  {e.status === 'Proposed' && (
+                    <span
+                      className="inline-flex items-center h-4 px-1.5 rounded-sm border border-accent/40 text-eyebrow uppercase text-accent shrink-0"
+                      title="Proposed from an approved concept"
+                    >
+                      New
+                    </span>
+                  )}
+                  <span className="truncate">{e.name}</span>
+                </div>
+              </td>
               <td className="py-3 pr-4"><CategoryBadge category={e.category} /></td>
               <td className="py-3 pr-4 text-fg-secondary">{e.city}</td>
               <td className="py-3 pr-4 text-fg-tertiary text-body-sm tnum">
