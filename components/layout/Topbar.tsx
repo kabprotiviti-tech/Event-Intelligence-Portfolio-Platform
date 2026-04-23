@@ -1,6 +1,7 @@
 'use client'
 import { usePathname } from 'next/navigation'
 import { CitySelector } from './CitySelector'
+import { ThemeSwitcher } from '@/components/system/ThemeSwitcher'
 
 const TITLES: Record<string, { title: string; sub: string }> = {
   '/dashboard': { title: 'Event Intelligence Platform', sub: 'Director overview · 2025 calendar' },
@@ -27,6 +28,8 @@ export function Topbar() {
 
       <div className="flex items-center gap-4">
         <CitySelector />
+        <div className="h-7 w-px bg-border-subtle" aria-hidden />
+        <ThemeSwitcher />
         <div className="h-7 w-px bg-border-subtle" aria-hidden />
         <div className="flex items-center gap-2.5">
           <div
