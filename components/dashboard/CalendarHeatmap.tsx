@@ -1,8 +1,8 @@
 'use client'
-import type { GapReport } from '@/types'
+import type { GapReport, Category } from '@/types'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const CATEGORIES = ['Family','Entertainment','Sports'] as const
+const CATEGORIES: Category[] = ['Family','Entertainment','Sports']
 
 const DENSITY_CELL: Record<string, string> = {
   empty:    'bg-gap-empty    text-fg-tertiary',
@@ -11,14 +11,19 @@ const DENSITY_CELL: Record<string, string> = {
   heavy:    'bg-gap-heavy    text-accent-ink',
 }
 
-const DENSITY_LEGEND: Array<{ id: keyof typeof DENSITY_CELL; label: string }> = [
+const DENSITY_LEGEND = [
   { id: 'empty',    label: 'Empty' },
   { id: 'light',    label: 'Light' },
   { id: 'moderate', label: 'Moderate' },
   { id: 'heavy',    label: 'Heavy' },
-]
+] as const
 
-export function CalendarHeatmap({ report }: { report: GapReport | null }) {
+interface Props {
+  report: GapReport | null | undefined
+  onCellClick?: (cell: { month: number; category: Category }) => void
+}
+
+export function CalendarHeatmap({ report, onCellClick }: Props) {
   if (!report) {
     return (
       <div
@@ -38,9 +43,7 @@ export function CalendarHeatmap({ report }: { report: GapReport | null }) {
               <span className="sr-only">Category</span>
             </th>
             {MONTHS.map(m => (
-              <th key={m} scope="col" className="text-fg-tertiary font-medium text-center pb-1 w-10">
-                {m}
-              </th>
+              <th key={m} scope="col" className="text-fg-tertiary font-medium text-center pb-1 w-10">{m}</th>
             ))}
           </tr>
         </thead>
@@ -51,17 +54,35 @@ export function CalendarHeatmap({ report }: { report: GapReport | null }) {
                 {cat}
               </th>
               {MONTHS.map((_, i) => {
-                const slot = report.slots.find(s => s.month === i + 1 && s.category === cat)
+                const month = i + 1
+                const slot = report.slots.find(s => s.month === month && s.category === cat)
                 const density = slot?.density ?? 'empty'
                 const count = slot?.event_count ?? 0
+                const title = `${cat} · ${MONTHS[i]}: ${count} event${count === 1 ? '' : 's'} (${density})`
+
+                const body = (
+                  <div
+                    className={`rounded-sm w-9 h-8 flex items-center justify-center font-medium mx-auto tnum transition-opacity duration-ui ease-out ${DENSITY_CELL[density]} ${onCellClick ? 'hover:opacity-80' : ''}`}
+                  >
+                    {count || '—'}
+                  </div>
+                )
+
                 return (
-                  <td key={i} className="text-center">
-                    <div
-                      className={`rounded-sm w-9 h-8 flex items-center justify-center font-medium mx-auto tnum ${DENSITY_CELL[density]}`}
-                      title={`${cat} · ${MONTHS[i]}: ${count} event${count === 1 ? '' : 's'} (${density})`}
-                    >
-                      {count || '—'}
-                    </div>
+                  <td key={i} className="text-center p-0">
+                    {onCellClick ? (
+                      <button
+                        type="button"
+                        onClick={() => onCellClick({ month, category: cat })}
+                        title={title}
+                        aria-label={title}
+                        className="block w-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        {body}
+                      </button>
+                    ) : (
+                      <div title={title}>{body}</div>
+                    )}
                   </td>
                 )
               })}
@@ -76,6 +97,9 @@ export function CalendarHeatmap({ report }: { report: GapReport | null }) {
             {label}
           </span>
         ))}
+        {onCellClick && (
+          <span className="ml-auto italic">Click any cell for drill-down</span>
+        )}
       </div>
     </div>
   )

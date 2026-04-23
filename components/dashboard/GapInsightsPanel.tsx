@@ -1,4 +1,4 @@
-import type { EnrichedGapReport, GapSeverity } from '@/types'
+import type { EnrichedGapReport, EnrichedGapSlot, GapSeverity } from '@/types'
 import { Skeleton, EmptyState } from '@/components/system/states'
 
 const MONTH_NAMES = [
@@ -12,7 +12,12 @@ const SEVERITY_STYLES: Record<GapSeverity, string> = {
   Low:      'border-subtle text-fg-tertiary',
 }
 
-export function GapInsightsPanel({ report }: { report: EnrichedGapReport | null | undefined }) {
+interface Props {
+  report: EnrichedGapReport | null | undefined
+  onGapClick?: (gap: EnrichedGapSlot) => void
+}
+
+export function GapInsightsPanel({ report, onGapClick }: Props) {
   if (!report) return <Skeleton height="h-24" label="Loading gap insights" />
 
   const { summary } = report
@@ -33,36 +38,52 @@ export function GapInsightsPanel({ report }: { report: EnrichedGapReport | null 
         <EmptyState title="No significant gaps detected." hint="This scope is already well-served." />
       ) : (
         <ul className="space-y-3">
-          {topGaps.map(s => (
-            <li
-              key={`${s.month}-${s.category}`}
-              className="rounded-sm border border-subtle bg-surface-card px-4 py-3 space-y-2"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-body-sm text-fg-primary">
-                    <span className="font-semibold">{MONTH_NAMES[s.month]}</span>
-                    <span className="text-fg-tertiary mx-2">·</span>
-                    {s.category}
-                  </p>
+          {topGaps.map(s => {
+            const row = (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-body-sm text-fg-primary">
+                      <span className="font-semibold">{MONTH_NAMES[s.month]}</span>
+                      <span className="text-fg-tertiary mx-2">·</span>
+                      {s.category}
+                    </p>
+                  </div>
+                  <SeverityPill severity={s.severity} />
                 </div>
-                <SeverityPill severity={s.severity} />
-              </div>
-              <p className="text-meta text-fg-secondary leading-snug">{s.competitor_context}</p>
-              <p className="text-meta text-fg-tertiary italic leading-snug">{s.recommendation_hint}</p>
-              <div className="flex items-center gap-2 pt-1">
-                <div className="flex-1 h-1 rounded-sm bg-surface-inset" aria-hidden>
-                  <div
-                    className="h-full rounded-sm bg-accent"
-                    style={{ width: `${s.gap_score * 100}%` }}
-                  />
+                <p className="text-meta text-fg-secondary leading-snug">{s.competitor_context}</p>
+                <p className="text-meta text-fg-tertiary italic leading-snug">{s.recommendation_hint}</p>
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="flex-1 h-1 rounded-sm bg-surface-inset" aria-hidden>
+                    <div
+                      className="h-full rounded-sm bg-accent"
+                      style={{ width: `${s.gap_score * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-meta text-fg-tertiary w-10 text-right tnum" data-tabular>
+                    {Math.round(s.gap_score * 100)}%
+                  </span>
                 </div>
-                <span className="text-meta text-fg-tertiary w-10 text-right tnum" data-tabular>
-                  {Math.round(s.gap_score * 100)}%
-                </span>
-              </div>
-            </li>
-          ))}
+              </>
+            )
+            return (
+              <li key={`${s.month}-${s.category}`}>
+                {onGapClick ? (
+                  <button
+                    type="button"
+                    onClick={() => onGapClick(s)}
+                    className="w-full text-left rounded-sm border border-subtle bg-surface-card px-4 py-3 space-y-2 hover:border-strong transition-colors duration-ui ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    {row}
+                  </button>
+                ) : (
+                  <div className="rounded-sm border border-subtle bg-surface-card px-4 py-3 space-y-2">
+                    {row}
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
