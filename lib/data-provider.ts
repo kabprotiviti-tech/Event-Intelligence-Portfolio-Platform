@@ -1,35 +1,26 @@
-import type { Event, Category, City } from '@/types'
-import { allEvents } from '@/data'
+import type { Event } from '@/types'
+import type { EventFilters } from './data/types'
+import { mockFallback } from './data/fallback'
 
-export interface EventFilters {
-  city?: City | City[]
-  category?: Category
-  year?: number
-  month?: number
-  verification_level?: string
-}
+// Re-export for backwards compatibility with existing imports (@/lib/data-provider EventFilters)
+export type { EventFilters }
 
+const LIVE = process.env.EIPP_DATA_MODE === 'live'
+
+/**
+ * The single public data entry for the whole app.
+ *
+ * - Mock mode (default): fast, deterministic, editorial dataset for demos.
+ * - Live mode: aggregates real connectors (Google News RSS, NewsAPI,
+ *   Ticketmaster) + blends with mock for calendar completeness, dedupes
+ *   against tier rank, and degrades to mock if everything upstream fails.
+ *
+ * Flip with env: EIPP_DATA_MODE=live  (and the relevant API keys).
+ */
 export async function getEvents(filters?: EventFilters): Promise<Event[]> {
-  let events = [...allEvents]
+  if (!LIVE) return mockFallback(filters)
 
-  if (filters?.city) {
-    const cities = Array.isArray(filters.city) ? filters.city : [filters.city]
-    events = events.filter(e => cities.includes(e.city))
-  }
-  if (filters?.category) {
-    events = events.filter(e => e.category === filters.category)
-  }
-  if (filters?.year) {
-    events = events.filter(e => new Date(e.start_date).getFullYear() === filters.year)
-  }
-  if (filters?.month) {
-    events = events.filter(e => new Date(e.start_date).getMonth() + 1 === filters.month)
-  }
-  if (filters?.verification_level) {
-    events = events.filter(e => e.verification_level === filters.verification_level)
-  }
-
-  return events.sort(
-    (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-  )
+  // Lazy import so mock builds never pull the connector tree.
+  const { getEventsFromAllSources } = await import('./data/provider-registry')
+  return getEventsFromAllSources(filters)
 }
