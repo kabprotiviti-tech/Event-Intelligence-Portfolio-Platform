@@ -15,8 +15,8 @@ export const dynamic = 'force-dynamic'
  * GET /api/portfolio
  * Returns: { events, summary, decisions, budget }
  *
- * decisions now includes 4 buckets (fund/scale/drop/create) with
- * key_factors, confidence, and a constraints summary.
+ * Category filter narrows the portfolio scope (shown events) but does NOT
+ * prune the gap detection dataset — otherwise gap counts inflate artificially.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -24,10 +24,10 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get('category') as Category | null
   const budgetParam = searchParams.get('budget')
 
-  // Full dataset — needed for geographic competition signal
+  // Full dataset — used for competition signal + unfiltered gap detection
   const allEvents = await getEvents({ year: 2025 })
 
-  // Scoped to the filter
+  // Scoped portfolio (what appears in the table / rankings)
   const scoped = allEvents.filter(e => {
     if (city && e.city !== city) return false
     if (category && e.category !== category) return false
@@ -47,15 +47,19 @@ export async function GET(req: NextRequest) {
   )
   const withBudget = simulateBudget(flagged, budget)
 
-  // Enrich gaps for the target city — used by CREATE bucket + fund-fills-critical-gap signal
-  const categoryScopedAll = category ? allEvents.filter(e => e.category === category) : allEvents
-  const rawGaps = detectGaps(categoryScopedAll, city, 2025)
-  const enriched = enrichGapReport(rawGaps, categoryScopedAll)
+  // Gap detection uses the FULL event set (not category-filtered) so
+  // the gap counts don't inflate. Then we narrow slots for the decision
+  // engine if a category filter is active.
+  const rawGaps = detectGaps(allEvents, city, 2025)
+  const enriched = enrichGapReport(rawGaps, allEvents)
+  const gapSlots = category
+    ? enriched.slots.filter(s => s.category === category)
+    : enriched.slots
 
   const decisions = generateDecisions({
     events: withBudget,
     allEvents,
-    gaps: enriched.slots,
+    gaps: gapSlots,
     budget,
     targetCity: city,
     comparisonCity: city === 'Abu Dhabi' ? 'Dubai' : 'Abu Dhabi',
@@ -84,9 +88,6 @@ export async function GET(req: NextRequest) {
   })
 }
 
-/**
- * POST /api/portfolio — create Proposed event from an approved concept.
- */
 export async function POST(req: NextRequest) {
   let body: { concept?: EventConcept } = {}
   try { body = await req.json() } catch {

@@ -15,15 +15,16 @@ export async function GET(req: NextRequest) {
   const city = (searchParams.get('city') ?? 'Abu Dhabi') as City
   const category = searchParams.get('category') as Category | null
 
+  // Run gap detection on the FULL event set; narrow the returned slots
+  // to the active category (if any) after the fact so gap counts reflect
+  // reality and not a side-effect of filtering.
   const events = await getEvents({ year })
-  const scoped = category ? events.filter(e => e.category === category) : events
-  const report = detectGaps(scoped, city, year)
+  const fullReport = detectGaps(events, city, year)
+  const report = category
+    ? { ...fullReport, slots: fullReport.slots.filter(s => s.category === category) }
+    : fullReport
 
-  // Compute category trends from the full event stream (live sources carry source_type
-  // of "news" or "marketplace" — those drive the trend signal; mock data is source_type
-  // "government" which is down-weighted).
   const trends = computeCategoryTrends(events)
-
   const all = generateRecommendations(report, events, { limit: limit * 2, trends })
 
   const approved = new Set(getApprovedConceptIds())
