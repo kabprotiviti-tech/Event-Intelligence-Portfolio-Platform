@@ -2,10 +2,11 @@
 import { useMemo } from 'react'
 import { useFilters } from '@/context/FilterContext'
 import { useDrill } from '@/context/DrillContext'
-import { useEvents, useGaps, usePortfolio } from '@/lib/hooks'
+import { useEvents, useGaps, usePortfolio, useApprovedConcepts } from '@/lib/hooks'
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap'
 import { GapInsightsPanel } from '@/components/dashboard/GapInsightsPanel'
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary'
+import { WhatsChangedBanner } from '@/components/dashboard/WhatsChangedBanner'
 import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
 import { StatCard } from '@/components/ui/StatCard'
 import { TabNav } from '@/components/layout/TabNav'
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const events    = useEvents({ city: focusCity, category, year: 2025 })
   const gaps      = useGaps({ cities: [focusCity], year: 2025, category })
   const portfolio = usePortfolio({ city: focusCity, category })
+  const approved  = useApprovedConcepts()
 
   const report = gaps.reports[0] ?? null
   const bundle = portfolio.bundle
@@ -128,6 +130,13 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6">
+      {/* What's changed since last visit — first thing the Director sees */}
+      <WhatsChangedBanner
+        bundle={bundle}
+        gapReport={report}
+        approvedConceptIds={Array.from(approved.ids)}
+      />
+
       <TabNav />
 
       {/* KPI row — every card drillable */}
