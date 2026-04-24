@@ -140,6 +140,13 @@ export const TrendFlatIcon = (p: IconProps) => (
   </svg>
 )
 
+export const FrameworkIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <rect x="2" y="2" width="12" height="12" rx="1.5" />
+    <path d="M5 5h6M5 8h6M5 11h4" />
+  </svg>
+)
+
 export const InfoIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <circle cx="8" cy="8" r="6.5" />

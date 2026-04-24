@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useMemo } from 'react'
 import { useFilters } from '@/context/FilterContext'
 import { useDrill } from '@/context/DrillContext'
@@ -9,6 +10,7 @@ import { GapInsightsPanel } from '@/components/dashboard/GapInsightsPanel'
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary'
 import { WhatsChangedBanner } from '@/components/dashboard/WhatsChangedBanner'
 import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
+import { ArrowRightIcon } from '@/components/system/Icon'
 import { StatCard } from '@/components/ui/StatCard'
 import { MethodologyInfo } from '@/components/ui/MethodologyInfo'
 import { TabNav } from '@/components/layout/TabNav'
@@ -247,6 +249,30 @@ export default function DashboardPage() {
           <span className="text-eyebrow uppercase text-fg-tertiary">Strategy · Trends</span>
         </header>
         <AiInsightsPanel city={focusCity} category={category} />
+      </section>
+
+      {/* Methodology & Sources footer — always visible, one click from proof */}
+      <section
+        aria-label="Methodology and sources"
+        className="rounded-md border border-subtle bg-surface-card p-5"
+      >
+        <div className="grid md:grid-cols-[1fr_auto] gap-4 items-center">
+          <div>
+            <p className="text-eyebrow uppercase text-fg-tertiary">Methodology &amp; sources</p>
+            <p className="text-body-sm text-fg-primary mt-1 leading-snug">
+              Every number on this page traces to a formula, a threshold, and a data source.
+            </p>
+            <p className="text-meta text-fg-tertiary mt-1">
+              Scoring weights · gap thresholds · decision rules · tier modifiers · connector inventory
+            </p>
+          </div>
+          <Link
+            href="/framework"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-sm border border-subtle hover:border-strong text-meta font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-ui ease-out shrink-0"
+          >
+            Open Framework &amp; Methodology <ArrowRightIcon />
+          </Link>
+        </div>
       </section>
     </div>
   )

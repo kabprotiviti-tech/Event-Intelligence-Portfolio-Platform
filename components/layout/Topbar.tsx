@@ -10,6 +10,7 @@ const TITLES: Record<string, { title: string; sub: string }> = {
   '/concepts':  { title: 'Concept Generator',            sub: 'Gap-sourced event opportunities' },
   '/portfolio': { title: 'Portfolio Optimizer',          sub: 'Scoring, budgeting & prioritization' },
   '/strategy':  { title: 'Chairman Brief',                sub: 'Health · outlook · scenarios' },
+  '/framework': { title: 'Framework & Methodology',       sub: 'Every formula · threshold · source' },
 }
 
 interface Props {
