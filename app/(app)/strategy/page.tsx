@@ -1,6 +1,7 @@
 'use client'
 import { useFilters } from '@/context/FilterContext'
 import { useChairmanBrief } from '@/lib/hooks'
+import { CURRENT_YEAR } from '@/lib/config'
 import { PortfolioHealthCard } from '@/components/strategy/PortfolioHealthCard'
 import { TrendStrip } from '@/components/strategy/TrendStrip'
 import { KeyGapsList } from '@/components/strategy/KeyGapsList'
@@ -55,7 +56,7 @@ export default function StrategyPage() {
       <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
         <div>
           <p className="text-eyebrow uppercase text-fg-tertiary">
-            {brief.target_city} · 2025 Review
+            {brief.target_city} · {CURRENT_YEAR} Review
           </p>
           <h1 className="text-h2 font-semibold text-fg-primary mt-1">Chairman Brief</h1>
         </div>

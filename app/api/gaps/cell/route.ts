@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEvents } from '@/lib/data-provider'
 import { getCellEvents, competitiveSignalFor } from '@/lib/gap-detail'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { Category, City } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   const month = parseInt(searchParams.get('month') ?? '0')
   const category = searchParams.get('category') as Category | null
   const compare = (searchParams.get('compare') ?? 'Dubai') as City
-  const year = parseInt(searchParams.get('year') ?? '2025')
+  const year = parseInt(searchParams.get('year') ?? String(CURRENT_YEAR))
 
   if (!month || month < 1 || month > 12) {
     return NextResponse.json({ error: 'month must be 1-12' }, { status: 400 })

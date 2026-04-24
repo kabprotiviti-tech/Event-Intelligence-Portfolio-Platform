@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import type { ApiResponse, EnrichedGapReport, Category, City } from '@/types'
 import { fetcher, qs } from './fetcher'
+import { CURRENT_YEAR } from '@/lib/config'
 
 interface UseGapsFilters {
   cities: City[]
@@ -8,7 +9,7 @@ interface UseGapsFilters {
   category?: Category | 'All' | null
 }
 
-export function useGaps({ cities, year = 2025, category }: UseGapsFilters) {
+export function useGaps({ cities, year = CURRENT_YEAR, category }: UseGapsFilters) {
   const url = `/api/gaps${qs({
     cities: cities.join(','),
     year,

@@ -3,6 +3,7 @@ import { getEvents } from '@/lib/data-provider'
 import { buildPortfolio, simulateBudget } from '@/lib/scorer'
 import { explainDecision } from '@/lib/ai/generators'
 import { getBudget } from '@/lib/store/portfolio-store'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { EventDecision } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   let event = body.event
   if (!event && body.event_id) {
-    const all = await getEvents({ year: 2025 })
+    const all = await getEvents({ year: CURRENT_YEAR })
     const scored = buildPortfolio(all)
     const withBudget = simulateBudget(scored, getBudget())
     event = withBudget.find(e => e.id === body.event_id)

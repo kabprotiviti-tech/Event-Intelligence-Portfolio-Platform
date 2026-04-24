@@ -5,7 +5,7 @@ import { ThemeSwitcher } from '@/components/system/ThemeSwitcher'
 import { MenuIcon } from '@/components/system/Icon'
 
 const TITLES: Record<string, { title: string; sub: string }> = {
-  '/dashboard': { title: 'Event Intelligence Platform', sub: 'Director overview · 2025 calendar' },
+  '/dashboard': { title: 'Event Intelligence Platform', sub: `Director overview · ${new Date().getFullYear()} calendar` },
   '/gaps':      { title: 'Gap Finder',                   sub: 'Cross-city calendar analysis' },
   '/concepts':  { title: 'Concept Generator',            sub: 'Gap-sourced event opportunities' },
   '/portfolio': { title: 'Portfolio Optimizer',          sub: 'Scoring, budgeting & prioritization' },

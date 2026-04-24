@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import type { ApiResponse, EventConcept, Category, City } from '@/types'
 import { fetcher, qs } from './fetcher'
+import { CURRENT_YEAR } from '@/lib/config'
 
 interface UseRecommendationsFilters {
   city?: City
@@ -14,7 +15,7 @@ export function useRecommendations(filters: UseRecommendationsFilters = {}) {
     city: filters.city,
     category: filters.category ?? undefined,
     limit: filters.limit ?? 6,
-    year: filters.year ?? 2025,
+    year: filters.year ?? CURRENT_YEAR,
   })}`
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<EventConcept[]>>(

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getEvents } from '@/lib/data-provider'
 import { detectGaps } from '@/lib/gap-detector'
 import { ArrowRightIcon } from '@/components/system/Icon'
+import { CURRENT_YEAR } from '@/lib/config'
 
 /**
  * Landing — editorial, typographic, data-first.
@@ -9,8 +10,8 @@ import { ArrowRightIcon } from '@/components/system/Icon'
  * The hero visual IS a real, computed 2025 gap matrix for Abu Dhabi.
  */
 export default async function LandingPage() {
-  const events = await getEvents({ year: 2025 })
-  const adReport = detectGaps(events, 'Abu Dhabi', 2025)
+  const events = await getEvents({ year: CURRENT_YEAR })
+  const adReport = detectGaps(events, 'Abu Dhabi', CURRENT_YEAR)
   const cities = new Set(events.map(e => e.city)).size
 
   return (
@@ -45,7 +46,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-7">
             <p className="text-eyebrow uppercase text-fg-tertiary mb-6">
-              Abu Dhabi Events Bureau · 2025 portfolio review
+              Abu Dhabi Events Bureau · {CURRENT_YEAR} portfolio review
             </p>
             <h1 className="text-[clamp(2rem,5vw,3.25rem)] leading-[1.1] tracking-tight font-semibold text-fg-primary">
               Where the next signature event should happen.
@@ -74,7 +75,7 @@ export default async function LandingPage() {
             <dl className="mt-12 grid grid-cols-3 gap-8 border-t border-subtle pt-6 max-w-lg">
               <MetricDefn term="Events tracked" value={events.length.toString()} />
               <MetricDefn term="Cities benchmarked" value={cities.toString()} />
-              <MetricDefn term="Gap slots · 2025" value={adReport.summary.total_gaps.toString()} />
+              <MetricDefn term={`Gap slots · ${CURRENT_YEAR}`} value={adReport.summary.total_gaps.toString()} />
             </dl>
           </div>
 
@@ -176,7 +177,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-6 lg:px-8 py-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div>
             <h2 className="text-h2 font-semibold text-fg-primary tracking-tight">
-              Review the 2025 calendar.
+              Review the {CURRENT_YEAR} calendar.
             </h2>
             <p className="text-body text-fg-tertiary mt-1">
               Director dashboard with gap analysis, recommended concepts, and live portfolio scoring.
@@ -194,7 +195,7 @@ export default async function LandingPage() {
       <footer>
         <div className="mx-auto max-w-[1200px] px-6 lg:px-8 py-8 flex flex-wrap items-center justify-between gap-3 text-meta text-fg-tertiary">
           <p>EIPP · Abu Dhabi Events Bureau · v0.4 MVP</p>
-          <p>© 2025 DCT Abu Dhabi · For internal director review</p>
+          <p>© {CURRENT_YEAR} DCT Abu Dhabi · For internal director review</p>
         </div>
       </footer>
     </div>
@@ -263,8 +264,8 @@ function WeightRow({ term, weight }: { term: string; weight: number }) {
 
 /* Real-data mini gap matrix — no placeholder, no sample data. */
 async function MiniGapMatrix() {
-  const events = await getEvents({ year: 2025 })
-  const report = detectGaps(events, 'Abu Dhabi', 2025)
+  const events = await getEvents({ year: CURRENT_YEAR })
+  const report = detectGaps(events, 'Abu Dhabi', CURRENT_YEAR)
   const MONTHS = ['J','F','M','A','M','J','J','A','S','O','N','D']
   const CATEGORIES = ['Family', 'Entertainment', 'Sports'] as const
   const DENSITY: Record<string, string> = {
@@ -279,7 +280,7 @@ async function MiniGapMatrix() {
       <figcaption className="flex items-baseline justify-between mb-4">
         <div>
           <p className="text-eyebrow uppercase text-fg-tertiary">Live preview</p>
-          <p className="text-body-sm font-semibold text-fg-primary mt-0.5">Abu Dhabi · 2025</p>
+          <p className="text-body-sm font-semibold text-fg-primary mt-0.5">Abu Dhabi · {CURRENT_YEAR}</p>
         </div>
         <p className="text-meta text-fg-tertiary tnum" data-tabular>
           {report.summary.total_gaps} gap slots

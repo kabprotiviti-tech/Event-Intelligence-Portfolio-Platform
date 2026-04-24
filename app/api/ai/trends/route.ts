@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getEvents } from '@/lib/data-provider'
 import { getTrendSignals } from '@/lib/trend-intelligence'
 import { analyzeTrends } from '@/lib/ai/generators'
+import { CURRENT_YEAR } from '@/lib/config'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 20
@@ -12,7 +13,7 @@ export const maxDuration = 20
  * Returns: AiResult<AiTrendsPayload>
  */
 export async function GET(_req: NextRequest) {
-  const all = await getEvents({ year: 2025 })
+  const all = await getEvents({ year: CURRENT_YEAR })
   const trends = getTrendSignals(all)
 
   const titles = all

@@ -3,6 +3,7 @@ import { getEvents } from '@/lib/data-provider'
 import { detectGaps } from '@/lib/gap-detector'
 import { enrichGapReport } from '@/lib/gap-enricher'
 import { generateEventConcept } from '@/lib/ai/generators'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { City, Category } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -31,8 +32,8 @@ export async function POST(req: NextRequest) {
     // Derive from (city, month, category) — useful when a UI component has
     // only the context and wants the matching enriched gap slot.
     const city = body.city ?? 'Abu Dhabi'
-    const events = await getEvents({ year: 2025 })
-    const report = detectGaps(events, city, 2025)
+    const events = await getEvents({ year: CURRENT_YEAR })
+    const report = detectGaps(events, city, CURRENT_YEAR)
     const enriched = enrichGapReport(report, events)
     gap = enriched.slots.find(s =>
       (!body.month    || s.month    === body.month) &&

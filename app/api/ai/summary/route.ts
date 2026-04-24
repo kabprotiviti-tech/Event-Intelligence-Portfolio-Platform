@@ -5,6 +5,7 @@ import { enrichGapReport } from '@/lib/gap-enricher'
 import { buildPortfolio, simulateBudget } from '@/lib/scorer'
 import { generateStrategicSummary } from '@/lib/ai/generators'
 import { getBudget } from '@/lib/store/portfolio-store'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { City, Category } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -19,10 +20,10 @@ export async function GET(req: NextRequest) {
   const city     = (searchParams.get('city') ?? 'Abu Dhabi') as City
   const category = searchParams.get('category') as Category | null
 
-  const all = await getEvents({ year: 2025 })
+  const all = await getEvents({ year: CURRENT_YEAR })
   const scoped = category ? all.filter(e => e.category === category) : all
 
-  const rawReport = detectGaps(scoped, city, 2025)
+  const rawReport = detectGaps(scoped, city, CURRENT_YEAR)
   const enriched  = enrichGapReport(rawReport, scoped)
 
   const portfolio = simulateBudget(

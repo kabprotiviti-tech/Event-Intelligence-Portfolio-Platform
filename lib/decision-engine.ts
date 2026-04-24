@@ -20,6 +20,7 @@ import type {
 } from '@/types'
 import { generateRecommendations } from './recommender'
 import { computeCategoryTrends, trendBoost } from './trend-analyzer'
+import { CURRENT_YEAR } from './config'
 
 // ── Thresholds (explicit, tunable) ──────────────────────────
 
@@ -210,7 +211,7 @@ function buildCreate(
 
   const syntheticReport = {
     city: targetCity,
-    year: criticalGaps[0].year || 2025,
+    year: criticalGaps[0].year || CURRENT_YEAR,
     slots: criticalGaps,  // EnrichedGapSlot extends GapSlot — structural compat
     summary: {
       emptiest_month: criticalGaps[0].month,

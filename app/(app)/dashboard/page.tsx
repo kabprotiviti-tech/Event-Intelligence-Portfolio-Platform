@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { useFilters } from '@/context/FilterContext'
 import { useDrill } from '@/context/DrillContext'
 import { useEvents, useGaps, usePortfolio, useApprovedConcepts } from '@/lib/hooks'
+import { CURRENT_YEAR } from '@/lib/config'
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap'
 import { GapInsightsPanel } from '@/components/dashboard/GapInsightsPanel'
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary'
@@ -30,8 +31,8 @@ export default function DashboardPage() {
   const focusCity = GROUP_FOCUS[cityGroup]
   const compareCity = GROUP_COMPARE[cityGroup]
 
-  const events    = useEvents({ city: focusCity, category, year: 2025 })
-  const gaps      = useGaps({ cities: [focusCity], year: 2025, category })
+  const events    = useEvents({ city: focusCity, category, year: CURRENT_YEAR })
+  const gaps      = useGaps({ cities: [focusCity], year: CURRENT_YEAR, category })
   const portfolio = usePortfolio({ city: focusCity, category })
   const approved  = useApprovedConcepts()
 
@@ -69,7 +70,7 @@ export default function DashboardPage() {
     if (!report) return
     open({
       kind: 'gaps',
-      eyebrow: `${focusCity} · 2025 calendar`,
+      eyebrow: `${focusCity} · ${CURRENT_YEAR} calendar`,
       title: `${report.summary.total_gaps} gap slots detected`,
       gaps: report.slots.filter(s => s.severity !== 'Low'),
       compare: compareCity,
@@ -151,7 +152,7 @@ export default function DashboardPage() {
             <StatCard
               label={`${cityGroup} Events`}
               value={events.count}
-              sub={`${category === 'All' ? 'All categories' : category} · 2025`}
+              sub={`${category === 'All' ? 'All categories' : category} · ${CURRENT_YEAR}`}
               priority
               onClick={openAllEvents}
               clickHint="View events"
@@ -186,7 +187,7 @@ export default function DashboardPage() {
         <header className="flex items-baseline justify-between mb-4">
           <div>
             <h2 className="text-h3 font-semibold text-fg-primary">
-              {focusCity} Event Calendar — 2025
+              {focusCity} Event Calendar — {CURRENT_YEAR}
             </h2>
             <p className="text-meta text-fg-tertiary mt-0.5">Click any cell to see the events · weighted by impact</p>
           </div>

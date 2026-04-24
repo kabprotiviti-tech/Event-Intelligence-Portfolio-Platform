@@ -2,6 +2,7 @@ import useSWR from 'swr'
 import type { Category, City, Event } from '@/types'
 import type { CompetitiveSignal } from '@/lib/gap-detail'
 import { fetcher, qs } from './fetcher'
+import { CURRENT_YEAR } from '@/lib/config'
 
 interface CellResponse {
   data: {
@@ -27,7 +28,7 @@ interface Opts {
  * Fetches the events behind one matrix cell + the competitive signal.
  * Returns null when month/category not set (nothing selected yet).
  */
-export function useGapCell({ month, category, compare = 'Dubai', year = 2025 }: Opts) {
+export function useGapCell({ month, category, compare = 'Dubai', year = CURRENT_YEAR }: Opts) {
   const shouldFetch = month !== null && category !== null
   const url = shouldFetch
     ? `/api/gaps/cell${qs({ month: month!, category: category!, compare, year })}`

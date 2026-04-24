@@ -5,6 +5,7 @@ import { enrichGapReport } from '@/lib/gap-enricher'
 import {
   simulateScenario, compareScenarios, PRESET_SCENARIOS,
 } from '@/lib/scenario-engine'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { ScenarioConfig, City } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   const city = body.city ?? 'Abu Dhabi'
-  const year = configs[0]?.year ?? 2025
+  const year = configs[0]?.year ?? CURRENT_YEAR
 
   const allEvents = await getEvents({ year })
   const rawReport = detectGaps(allEvents, city, year)

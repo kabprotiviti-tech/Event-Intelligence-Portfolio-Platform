@@ -17,7 +17,7 @@ export function ConceptCard({ concept }: { concept: EventConcept }) {
         <CategoryBadge category={concept.category} />
         <span className="text-meta text-fg-tertiary">{concept.event_format}</span>
         <span className="text-fg-tertiary" aria-hidden>·</span>
-        <span className="text-meta text-fg-secondary">{MONTH_NAMES[concept.suggested_month]} 2025</span>
+        <span className="text-meta text-fg-secondary">{MONTH_NAMES[concept.suggested_month]} {new Date().getFullYear()}</span>
         <span className="text-fg-tertiary" aria-hidden>·</span>
         <span className="text-meta text-fg-secondary">{concept.suggested_city}</span>
       </div>

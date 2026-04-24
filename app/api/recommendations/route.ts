@@ -4,13 +4,14 @@ import { detectGaps } from '@/lib/gap-detector'
 import { generateRecommendations } from '@/lib/recommender'
 import { computeCategoryTrends } from '@/lib/trend-analyzer'
 import { getApprovedConceptIds } from '@/lib/store/portfolio-store'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { Category, City } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-  const year = parseInt(searchParams.get('year') ?? '2025')
+  const year = parseInt(searchParams.get('year') ?? String(CURRENT_YEAR))
   const limit = parseInt(searchParams.get('limit') ?? '6')
   const city = (searchParams.get('city') ?? 'Abu Dhabi') as City
   const category = searchParams.get('category') as Category | null

@@ -1,4 +1,5 @@
 import type { Event, Category, City } from '@/types'
+import { CURRENT_YEAR } from '@/lib/config'
 
 /**
  * Given a month/category/city, return the actual events that populated
@@ -9,7 +10,7 @@ export function getCellEvents(
   city: City,
   month: number,
   category: Category,
-  year = 2025,
+  year = CURRENT_YEAR,
 ): Event[] {
   return events.filter(e => {
     if (e.city !== city || e.category !== category) return false

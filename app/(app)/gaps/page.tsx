@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react'
 import { useFilters } from '@/context/FilterContext'
 import { useGaps } from '@/lib/hooks'
+import { CURRENT_YEAR } from '@/lib/config'
 import { GapMatrix } from '@/components/gaps/GapMatrix'
 import { GapCellDrill } from '@/components/gaps/GapCellDrill'
 import { TabNav } from '@/components/layout/TabNav'
@@ -32,7 +33,7 @@ export default function GapsPage() {
   // Pull reports for Abu Dhabi + chosen comparison
   const { reports, isLoading, error, mutate } = useGaps({
     cities: ['Abu Dhabi', compareCity],
-    year: 2025,
+    year: CURRENT_YEAR,
     category,
   })
 

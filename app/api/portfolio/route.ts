@@ -7,6 +7,7 @@ import { generateDecisions } from '@/lib/decision-engine'
 import {
   addProposedEventFromConcept, getBudget, getProposedEvents,
 } from '@/lib/store/portfolio-store'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { Category, City, EventConcept, PortfolioEvent } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
   const budgetParam = searchParams.get('budget')
 
   // Full dataset — used for competition signal + unfiltered gap detection
-  const allEvents = await getEvents({ year: 2025 })
+  const allEvents = await getEvents({ year: CURRENT_YEAR })
 
   // Scoped portfolio (what appears in the table / rankings)
   const scoped = allEvents.filter(e => {
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
   // Gap detection uses the FULL event set (not category-filtered) so
   // the gap counts don't inflate. Then we narrow slots for the decision
   // engine if a category filter is active.
-  const rawGaps = detectGaps(allEvents, city, 2025)
+  const rawGaps = detectGaps(allEvents, city, CURRENT_YEAR)
   const enriched = enrichGapReport(rawGaps, allEvents)
   const gapSlots = category
     ? enriched.slots.filter(s => s.category === category)

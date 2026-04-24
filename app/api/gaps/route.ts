@@ -3,6 +3,7 @@ import { getEvents } from '@/lib/data-provider'
 import { detectGaps } from '@/lib/gap-detector'
 import { enrichGapReport } from '@/lib/gap-enricher'
 import { getProposedEvents } from '@/lib/store/portfolio-store'
+import { CURRENT_YEAR } from '@/lib/config'
 import type { City, Category, EnrichedGapReport, GapSeverity } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const citiesParam = searchParams.get('cities') ?? 'Abu Dhabi,Dubai'
-  const year = parseInt(searchParams.get('year') ?? '2025')
+  const year = parseInt(searchParams.get('year') ?? String(CURRENT_YEAR))
   const categoryParam = searchParams.get('category') as Category | null
 
   const cities = citiesParam.split(',').map(c => c.trim()) as City[]
