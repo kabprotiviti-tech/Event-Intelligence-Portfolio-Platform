@@ -11,6 +11,7 @@ import { AiExplainButton } from '@/components/ai/AiExplainButton'
 import { Skeleton, EmptyState } from '@/components/system/states'
 import type { MethodologyEntry, MethodFactor, MethodThreshold } from '@/lib/methodology'
 import { MethodologyInfo } from '@/components/ui/MethodologyInfo'
+import type { SourceDetail } from '@/lib/source-details'
 
 const MONTHS = [
   '', 'January','February','March','April','May','June',
@@ -40,7 +41,106 @@ export function DrillBody({ payload }: { payload: DrillPayload }) {
     case 'scenario':           return <ScenarioDetail scenario={payload.scenario} />
     case 'competitive-gap':    return <CompetitiveGapDetail gap={payload.gap} />
     case 'methodology':        return <MethodologyDetail entry={payload.entry} />
+    case 'source-detail':      return <SourceDetailView detail={payload.detail} />
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Source Detail — full provider dossier
+   ═══════════════════════════════════════════════════════════════════ */
+
+function SourceDetailView({ detail }: { detail: SourceDetail }) {
+  const KIND_TONE: Record<SourceDetail['kind'], string> = {
+    government:  'border-positive/40 text-positive',
+    marketplace: 'border-accent/40 text-accent',
+    news:        'border-caution/40 text-caution',
+    editorial:   'border-subtle text-fg-secondary',
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center h-5 px-2 rounded-sm border text-eyebrow uppercase font-semibold ${KIND_TONE[detail.kind]}`}>
+            {detail.kind}
+          </span>
+          <span className="inline-flex items-center h-5 px-2 rounded-sm border border-subtle text-eyebrow uppercase text-fg-primary font-mono">
+            {detail.tier}
+          </span>
+          <span className="text-meta text-fg-tertiary font-mono">{detail.tier_modifier}</span>
+        </div>
+        <p className="text-body-sm font-semibold text-fg-primary">{detail.provider}</p>
+        <p className="text-body-sm text-fg-secondary leading-relaxed">{detail.description}</p>
+      </div>
+
+      {(detail.endpoint || detail.cache_ttl_min !== undefined || detail.env_flag) && (
+        <div>
+          <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Runtime</p>
+          <dl className="space-y-1.5 text-meta">
+            {detail.endpoint && (
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-fg-tertiary shrink-0">Endpoint</dt>
+                <dd className="font-mono text-fg-primary text-right break-all">{detail.endpoint}</dd>
+              </div>
+            )}
+            {detail.cache_ttl_min !== undefined && (
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-fg-tertiary">Cache TTL</dt>
+                <dd className="font-mono text-fg-primary tnum" data-tabular>{detail.cache_ttl_min} min</dd>
+              </div>
+            )}
+            {detail.env_flag && (
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-fg-tertiary">Env flag</dt>
+                <dd className="font-mono text-fg-primary">{detail.env_flag}</dd>
+              </div>
+            )}
+            {detail.enabled_default !== undefined && (
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-fg-tertiary">Default status</dt>
+                <dd className={detail.enabled_default ? 'text-positive font-semibold' : 'text-fg-tertiary'}>
+                  {detail.enabled_default ? 'Enabled' : 'Disabled (set env flag to activate)'}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Strengths</p>
+        <ul className="space-y-1.5 text-body-sm text-fg-secondary leading-relaxed list-disc pl-5 marker:text-positive">
+          {detail.strengths.map((s, i) => <li key={i}>{s}</li>)}
+        </ul>
+      </div>
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Limitations</p>
+        <ul className="space-y-1.5 text-body-sm text-fg-secondary leading-relaxed list-disc pl-5 marker:text-negative">
+          {detail.limitations.map((l, i) => <li key={i}>{l}</li>)}
+        </ul>
+      </div>
+
+      {detail.source_url && (
+        <div className="pt-3 border-t border-subtle">
+          <p className="text-eyebrow uppercase text-fg-tertiary mb-1">Provider homepage</p>
+          <a
+            href={detail.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-body-sm font-medium text-accent hover:opacity-80 transition-opacity duration-ui ease-out break-all"
+          >
+            {detail.source_url} ↗
+          </a>
+        </div>
+      )}
+
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary">Integration file</p>
+        <p className="text-meta font-mono text-fg-secondary mt-1 break-all">{detail.source_file}</p>
+      </div>
+    </div>
+  )
 }
 
 /* ═══════════════════════════════════════════════════════════════════

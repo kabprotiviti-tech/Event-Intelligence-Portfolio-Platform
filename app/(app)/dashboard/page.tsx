@@ -190,6 +190,7 @@ export default function DashboardPage() {
               sub="Critical gaps to source"
               onClick={openConcepts}
               clickHint="See opportunities"
+              infoSlot={<MethodologyInfo kind="decision-create" />}
             />
           </>
         )}

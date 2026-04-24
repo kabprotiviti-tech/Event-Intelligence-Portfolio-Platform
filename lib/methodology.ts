@@ -20,6 +20,7 @@ export type MethodologyKind =
   | 'confidence-event'
   | 'confidence-concept'
   | 'avg-portfolio-score'
+  | 'portfolio-health'
 
 export interface MethodFactor {
   label: string
@@ -81,6 +82,7 @@ export function getMethodology(
     case 'decision-create':      return decisionCreate()
     case 'confidence-event':     return confidenceEvent(ctx.event)
     case 'confidence-concept':   return confidenceConcept()
+    case 'portfolio-health':     return portfolioHealth()
   }
 }
 
@@ -391,6 +393,35 @@ function confidenceEvent(event?: PortfolioEvent): MethodologyEntry {
   ]
 
   return { ...base, inputs }
+}
+
+function portfolioHealth(): MethodologyEntry {
+  return {
+    title: 'Portfolio Health Score',
+    subject: 'Portfolio Health (/10)',
+    formula: 'avg_score ± adjustments (rising trends / underdeveloped cats / lagging years / drop-count)',
+    inputs: [
+      { label: 'Base',                    value: 'avg(portfolio_score)',            tone: 'neutral' },
+      { label: 'Rising categories',       value: '+0.4 each',                       tone: 'positive' },
+      { label: 'Declining categories',    value: '−0.4 each',                       tone: 'negative' },
+      { label: 'Underdeveloped cats',     value: '−0.5 each',                       tone: 'negative' },
+      { label: 'Lagging horizon years',   value: '−0.4 each',                       tone: 'negative' },
+      { label: 'Fund-ready count',        value: '+0.2 each',                       tone: 'positive' },
+      { label: 'Drop candidates',         value: '−0.2 each',                       tone: 'negative' },
+    ],
+    thresholds: [
+      { label: 'Strong',   rule: 'score ≥ 8.0',                applies: false, tone: 'positive' },
+      { label: 'Solid',    rule: '6.5 ≤ score < 8.0',          applies: false, tone: 'neutral' },
+      { label: 'At risk',  rule: '4.0 ≤ score < 6.5',          applies: false, tone: 'caution' },
+      { label: 'Weak',     rule: 'score < 4.0',                applies: false, tone: 'negative' },
+    ],
+    assumptions: [
+      'Starts from the raw average portfolio score and adjusts for structural signals from the Chairman brief.',
+      'Trajectory (improving/stable/declining) is a separate calculation — primarily reads rising-count minus declining-count.',
+      'Capped at [0, 10]. Adjustments are bounded so one factor can\'t swing the score by more than ~2 points.',
+    ],
+    source: 'lib/chairman-brief.ts · computePortfolioHealth()',
+  }
 }
 
 function confidenceConcept(): MethodologyEntry {

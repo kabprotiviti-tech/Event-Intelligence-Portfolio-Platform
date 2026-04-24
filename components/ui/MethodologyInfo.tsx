@@ -37,6 +37,7 @@ const DEFAULT_LABELS: Record<MethodologyKind, string> = {
   'decision-create':     'How are Create concepts generated?',
   'confidence-event':    'How is confidence derived?',
   'confidence-concept':  'How is confidence derived?',
+  'portfolio-health':    'How is portfolio health scored?',
 }
 
 export function MethodologyInfo({ kind, context, className = '', label }: Props) {

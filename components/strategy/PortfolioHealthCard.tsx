@@ -1,5 +1,6 @@
 import type { PortfolioHealth } from '@/types'
 import { TrendUpIcon, TrendFlatIcon, TrendDownIcon } from '@/components/system/Icon'
+import { MethodologyInfo } from '@/components/ui/MethodologyInfo'
 
 const LABEL_TONE = {
   Strong:    'text-positive',
@@ -30,7 +31,10 @@ export function PortfolioHealthCard({ health }: { health: PortfolioHealth }) {
     >
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
         <div className="min-w-0 shrink-0">
-          <p className="text-eyebrow uppercase text-fg-tertiary">Portfolio Health</p>
+          <div className="flex items-center gap-2">
+            <p className="text-eyebrow uppercase text-fg-tertiary">Portfolio Health</p>
+            <MethodologyInfo kind="portfolio-health" />
+          </div>
           <div className="flex items-baseline gap-4 mt-3">
             <span className="text-display font-semibold text-fg-primary tnum leading-none" data-tabular>
               {health.score.toFixed(1)}
