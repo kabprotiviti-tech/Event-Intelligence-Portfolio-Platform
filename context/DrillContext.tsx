@@ -4,6 +4,7 @@ import type {
   Category, City, EnrichedGapSlot, EventDecision, CreateDecision,
   PortfolioEvent, FutureOpportunity, ScenarioResult, CompetitiveGap,
 } from '@/types'
+import type { MethodologyEntry } from '@/lib/methodology'
 
 /**
  * Every click-to-drill action in the app resolves into one of these payloads.
@@ -20,6 +21,7 @@ export type DrillPayload =
   | { kind: 'future-opportunity'; title: string; eyebrow: string; opportunity: FutureOpportunity }
   | { kind: 'scenario';           title: string; eyebrow: string; scenario: ScenarioResult }
   | { kind: 'competitive-gap';    title: string; eyebrow: string; gap: CompetitiveGap }
+  | { kind: 'methodology';        title: string; eyebrow: string; entry: MethodologyEntry }
 
 interface DrillState {
   payload: DrillPayload | null

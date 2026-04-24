@@ -10,6 +10,7 @@ import { DecisionSummary } from '@/components/dashboard/DecisionSummary'
 import { WhatsChangedBanner } from '@/components/dashboard/WhatsChangedBanner'
 import { AiInsightsPanel } from '@/components/ai/AiInsightsPanel'
 import { StatCard } from '@/components/ui/StatCard'
+import { MethodologyInfo } from '@/components/ui/MethodologyInfo'
 import { TabNav } from '@/components/layout/TabNav'
 import { Skeleton, ErrorFallback } from '@/components/system/states'
 import type { City, CityGroup, EnrichedGapSlot, EventDecision, CreateDecision, PortfolioEvent } from '@/types'
@@ -163,6 +164,7 @@ export default function DashboardPage() {
               sub="Weighted empty or light slots"
               onClick={openAllGaps}
               clickHint="View all gaps"
+              infoSlot={<MethodologyInfo kind="gap-score" />}
             />
             <StatCard
               label="Avg Portfolio Score"
@@ -170,6 +172,15 @@ export default function DashboardPage() {
               sub="Weighted formula · /10"
               onClick={openTopScored}
               clickHint="Rank by score"
+              infoSlot={
+                <MethodologyInfo
+                  kind="avg-portfolio-score"
+                  context={{
+                    avgScore: bundle?.summary.avg_portfolio_score,
+                    eventCount: bundle?.summary.total_events,
+                  }}
+                />
+              }
             />
             <StatCard
               label="New Opportunities"

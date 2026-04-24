@@ -140,6 +140,14 @@ export const TrendFlatIcon = (p: IconProps) => (
   </svg>
 )
 
+export const InfoIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="8" cy="8" r="6.5" />
+    <path d="M8 7v4" />
+    <circle cx="8" cy="4.75" r="0.5" fill="currentColor" stroke="none" />
+  </svg>
+)
+
 export const SparkleIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M8 2l1.4 3.6L13 7l-3.6 1.4L8 12l-1.4-3.6L3 7l3.6-1.4z" />

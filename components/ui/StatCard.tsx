@@ -6,6 +6,8 @@ interface Props {
   priority?: boolean
   onClick?: () => void
   clickHint?: string   // e.g., "View all events"
+  /** Small inline slot beside the label — typically a MethodologyInfo button. */
+  infoSlot?: React.ReactNode
 }
 
 /**
@@ -13,13 +15,16 @@ interface Props {
  * Priority = 2px left rail in accent. When `onClick` is provided, the card
  * becomes a button with a quiet hint so the Director knows it's drillable.
  */
-export function StatCard({ label, value, sub, trend, priority, onClick, clickHint }: Props) {
+export function StatCard({ label, value, sub, trend, priority, onClick, clickHint, infoSlot }: Props) {
   const body = (
     <>
       {priority && (
         <div aria-hidden className="absolute top-0 bottom-0 left-0 w-[2px] bg-accent rounded-sm" />
       )}
-      <p className="text-eyebrow uppercase text-fg-tertiary">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-eyebrow uppercase text-fg-tertiary">{label}</p>
+        {infoSlot}
+      </div>
       <p className="text-display font-semibold text-fg-primary mt-3 tnum leading-none" data-tabular>
         {value}
       </p>

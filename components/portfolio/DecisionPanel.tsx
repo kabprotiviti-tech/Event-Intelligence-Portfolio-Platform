@@ -7,6 +7,8 @@ import type {
 import { Skeleton, EmptyState } from '@/components/system/states'
 import { AiExplainButton } from '@/components/ai/AiExplainButton'
 import { useDrill } from '@/context/DrillContext'
+import { MethodologyInfo } from '@/components/ui/MethodologyInfo'
+import type { MethodologyKind } from '@/lib/methodology'
 
 /**
  * 4-bucket director view: Fund · Scale · Drop · Create.
@@ -124,7 +126,7 @@ function EventColumn({ kind, entries }: { kind: 'fund' | 'scale' | 'drop'; entri
   const h = HEADINGS[kind]
   return (
     <section className="rounded-md border border-subtle bg-surface-card overflow-hidden">
-      <ColumnHeader heading={h} />
+      <ColumnHeader heading={h} kind={kind} />
       {entries.length === 0 ? (
         <p className="p-5 text-meta text-fg-tertiary">Nothing matches this bucket for the current filter.</p>
       ) : (
@@ -142,7 +144,7 @@ function CreateColumn({ entries }: { entries: CreateDecision[] }) {
   const h = HEADINGS.create
   return (
     <section className="rounded-md border border-subtle bg-surface-card overflow-hidden">
-      <ColumnHeader heading={h} />
+      <ColumnHeader heading={h} kind="create" />
       {entries.length === 0 ? (
         <p className="p-5 text-meta text-fg-tertiary">No high-severity gaps to source from.</p>
       ) : (
@@ -156,12 +158,21 @@ function CreateColumn({ entries }: { entries: CreateDecision[] }) {
   )
 }
 
-function ColumnHeader({ heading }: { heading: typeof HEADINGS[DecisionKind] }) {
+function ColumnHeader({ heading, kind }: { heading: typeof HEADINGS[DecisionKind]; kind: DecisionKind }) {
+  const methodologyKind: MethodologyKind =
+    kind === 'fund'   ? 'decision-fund'
+  : kind === 'scale'  ? 'decision-scale'
+  : kind === 'drop'   ? 'decision-drop'
+  :                     'decision-create'
+
   return (
     <header className="border-b border-subtle px-5 pt-5 pb-4">
-      <div className="flex items-center gap-3">
-        <span aria-hidden className={`w-1 h-4 rounded-sm ${heading.rail}`} />
-        <p className="text-eyebrow uppercase text-fg-tertiary">{heading.eyebrow}</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span aria-hidden className={`w-1 h-4 rounded-sm ${heading.rail}`} />
+          <p className="text-eyebrow uppercase text-fg-tertiary">{heading.eyebrow}</p>
+        </div>
+        <MethodologyInfo kind={methodologyKind} />
       </div>
       <h3 className="text-h3 font-semibold text-fg-primary mt-1">{heading.title}</h3>
       <p className="text-meta text-fg-tertiary">{heading.sub}</p>

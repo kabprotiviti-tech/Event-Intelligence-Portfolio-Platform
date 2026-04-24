@@ -9,6 +9,8 @@ import { CategoryBadge } from '@/components/ui/Badge'
 import { SourceBadge } from '@/components/ui/SourceBadge'
 import { AiExplainButton } from '@/components/ai/AiExplainButton'
 import { Skeleton, EmptyState } from '@/components/system/states'
+import type { MethodologyEntry, MethodFactor, MethodThreshold } from '@/lib/methodology'
+import { MethodologyInfo } from '@/components/ui/MethodologyInfo'
 
 const MONTHS = [
   '', 'January','February','March','April','May','June',
@@ -37,7 +39,127 @@ export function DrillBody({ payload }: { payload: DrillPayload }) {
     case 'future-opportunity': return <OpportunityDetail opportunity={payload.opportunity} />
     case 'scenario':           return <ScenarioDetail scenario={payload.scenario} />
     case 'competitive-gap':    return <CompetitiveGapDetail gap={payload.gap} />
+    case 'methodology':        return <MethodologyDetail entry={payload.entry} />
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Methodology — formula + inputs + thresholds + assumptions + source
+   ═══════════════════════════════════════════════════════════════════ */
+
+function MethodologyDetail({ entry }: { entry: MethodologyEntry }) {
+  const toneColor: Record<string, string> = {
+    positive: 'text-positive',
+    negative: 'text-negative',
+    caution:  'text-caution',
+    neutral:  'text-fg-primary',
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Formula box */}
+      <div className="rounded-sm border border-subtle bg-surface-inset px-4 py-3">
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-1.5">Formula</p>
+        <p className="text-body-sm font-mono text-fg-primary leading-snug">{entry.formula}</p>
+      </div>
+
+      {/* Inputs */}
+      {entry.inputs.length > 0 && (
+        <div>
+          <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Inputs</p>
+          <dl className="space-y-1.5">
+            {entry.inputs.map((f, i) => <InputRow key={i} factor={f} />)}
+          </dl>
+        </div>
+      )}
+
+      {/* Modifiers */}
+      {entry.modifiers && entry.modifiers.length > 0 && (
+        <div>
+          <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Modifiers</p>
+          <dl className="space-y-1.5">
+            {entry.modifiers.map((f, i) => <InputRow key={i} factor={f} />)}
+          </dl>
+        </div>
+      )}
+
+      {/* Result */}
+      {entry.result && (
+        <div className="rounded-sm border border-accent/30 bg-surface-card px-4 py-3">
+          <p className="text-eyebrow uppercase text-fg-tertiary mb-1">Result</p>
+          <p className="text-body-sm font-mono text-fg-primary leading-snug">{entry.result}</p>
+        </div>
+      )}
+
+      {/* Thresholds */}
+      {entry.thresholds && entry.thresholds.length > 0 && (
+        <div>
+          <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Thresholds</p>
+          <ul className="space-y-1.5">
+            {entry.thresholds.map((t, i) => <ThresholdRow key={i} threshold={t} />)}
+          </ul>
+        </div>
+      )}
+
+      {/* Assumptions */}
+      <div>
+        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Assumptions</p>
+        <ul className="space-y-2">
+          {entry.assumptions.map((a, i) => (
+            <li key={i} className="flex gap-2.5 text-body-sm text-fg-secondary leading-relaxed">
+              <span className="text-fg-tertiary mt-0.5">·</span>
+              <span>{a}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Source */}
+      <div className="pt-3 border-t border-subtle">
+        <p className="text-eyebrow uppercase text-fg-tertiary">Source of truth</p>
+        <p className="text-meta font-mono text-fg-secondary mt-1">{entry.source}</p>
+      </div>
+    </div>
+  )
+}
+
+function InputRow({ factor }: { factor: MethodFactor }) {
+  const toneCls =
+    factor.tone === 'positive' ? 'text-positive'
+  : factor.tone === 'negative' ? 'text-negative'
+  :                              'text-fg-primary'
+  return (
+    <div className="flex items-baseline justify-between gap-3 text-body-sm">
+      <dt className="text-fg-secondary">{factor.label}</dt>
+      <dd className="font-mono text-fg-tertiary tabular-nums" data-tabular>
+        <span className={`font-semibold ${toneCls}`}>{factor.value}</span>
+        {factor.weight && <span className="text-fg-tertiary ml-2">{factor.weight}</span>}
+        {factor.contribution && (
+          <span className="text-fg-tertiary ml-2">= <span className="text-fg-primary font-semibold">{factor.contribution}</span></span>
+        )}
+      </dd>
+    </div>
+  )
+}
+
+function ThresholdRow({ threshold }: { threshold: MethodThreshold }) {
+  const toneCls =
+    threshold.tone === 'positive' ? 'border-positive/30 text-positive'
+  : threshold.tone === 'negative' ? 'border-negative/30 text-negative'
+  : threshold.tone === 'caution'  ? 'border-caution/30 text-caution'
+  :                                  'border-subtle text-fg-secondary'
+
+  return (
+    <li className={`flex items-baseline justify-between rounded-sm border px-3 py-2 text-meta ${threshold.applies ? 'bg-surface-inset ' + toneCls : 'border-subtle text-fg-tertiary'}`}>
+      <div className="flex items-center gap-2">
+        {threshold.applies && (
+          <span aria-hidden className="w-1 h-3 rounded-sm bg-current" />
+        )}
+        <span className="font-medium">{threshold.label}</span>
+      </div>
+      <span className="font-mono">{threshold.rule}</span>
+    </li>
+  )
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -155,7 +277,10 @@ function EventDetail({ event }: { event: PortfolioEvent }) {
       </div>
 
       <div>
-        <p className="text-eyebrow uppercase text-fg-tertiary mb-2">Score breakdown</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-eyebrow uppercase text-fg-tertiary">Score breakdown</p>
+          <MethodologyInfo kind="portfolio-score" context={{ event }} />
+        </div>
         <dl className="space-y-2 text-meta">
           <Factor term="Portfolio score" value={event.portfolio_score} />
           <Factor term="ROI"              value={event.roi_score} />
